@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    // these options are not read by esbuild
+    "moduleResolution": "nodenext",
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": false,
+    "target": "es2020",
+    "module": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "allowJs": true
+  },
+  "include": ["src/**.mts"],
+  "exclude": ["node_modules"]
+}
