@@ -6,16 +6,17 @@ build() {
 # サーバー起動コマンド
 start() {
     # 開発段階ではこっちを使う
-    if [ "$2" = "dev" ]; then
-        tsx watch src/index.ts
+    if [ "$1" = "dev" ]; then
+        npx tsx watch src/app.ts
     else
         build
-        tsx dist/index.js
+        npx tsx dist/app.js
     fi
 }
 
 test() {
     # テストコードを書いたらここに書く
+    echo "test"
 }
 
 if [ "$1" == "test" ]; then
@@ -23,7 +24,9 @@ if [ "$1" == "test" ]; then
 elif [ "$1" == "build" ]; then
     build
 elif [ "$1" == "start" ]; then
-    start
+    start $2
 else
     echo "Invalid command"
 fi
+
+exit 0
