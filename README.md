@@ -1,5 +1,25 @@
 # PetHealthApp_WebAPI
 
+## ファイル構成
+
+```bash
+.
+├── README.md
+├── package.json
+├── package-lock.json
+├── dist/
+├── src/
+│   ├── app.ts
+│   ├── controllers/
+│   │   └── userController.ts
+│   ├── models/
+│   │   └── user.ts
+│   └── routes/
+│       └── user.ts
+├── tsconfig.json
+└── npm.sh
+```
+
 ## 使用できるコマンド
 
 ### 本番用
