@@ -10,10 +10,6 @@
 ├── dist/
 ├── src/
 │   ├── app.ts
-│   ├── controllers/
-│   │   └── userController.ts
-│   ├── models/
-│   │   └── user.ts
 │   └── routes/
 │       └── user.ts
 ├── tsconfig.json
