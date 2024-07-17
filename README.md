@@ -10,8 +10,11 @@
 ├── dist/
 ├── src/
 │   ├── app.ts
-│   └── routes/
+│   ├── routes/
+│   |   └── user.ts
+|   ├── controllers/
 │       └── user.ts
+|
 ├── tsconfig.json
 └── npm.sh
 ```
