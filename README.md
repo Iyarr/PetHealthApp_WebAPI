@@ -11,13 +11,23 @@
 ├── src/
 │   ├── app.ts
 │   ├── routes/
-│   |   └── user.ts
-|   ├── controllers/
+│   │    └── user.ts
+│   ├── controllers/
 │       └── user.ts
-|
+│
 ├── tsconfig.json
 └── npm.sh
 ```
+
+### routes
+
+API のエンドポイントを定義する場所
+パスごとにファイルを分ける
+
+### controllers
+
+API のエンドポイントに対して処理を行う場所
+routes に対応するファイルを作成する
 
 ## 使用できるコマンド
 
