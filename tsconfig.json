@@ -12,6 +12,6 @@
     "outDir": "./dist",
     "allowJs": true
   },
-  "include": ["src/**.mts"],
+  "include": ["src/**.ts"],
   "exclude": ["node_modules"]
 }
