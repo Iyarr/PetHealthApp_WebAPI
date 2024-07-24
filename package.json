@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "tsx src/test.mts",
-    "build": "node build.js"
+    "start": "node dist/app.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +15,6 @@
   },
   "dependencies": {
     "axios": "^1.7.2",
-    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5"
   }
 }
