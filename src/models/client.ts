@@ -5,8 +5,8 @@ export class Client {
   client: DynamoDBClient;
   getCommand: GetCommand;
 
-  constructor(client: DynamoDBClient) {
-    this.client = client;
+  constructor() {
+    this.client = new DynamoDBClient();
     this.getCommand = new GetCommand();
   }
 }
