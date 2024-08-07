@@ -1,9 +1,9 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
-import { Client } from "./models/client.js";
 
 const app = express();
-const client = new Client();
+const client = new DynamoDBClient();
 
 app.set("client", client);
 app.use(express.json());
