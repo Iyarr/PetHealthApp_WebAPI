@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "rm -rf dist/* && find src -name '*.ts' | xargs npx esbuild --format=esm --platform=node --outdir=dist"
+    "build": "find src -name '*.ts' | xargs npx esbuild --format=esm --platform=node --outdir=dist"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +12,7 @@
     "@aws-sdk/client-dynamodb": "^3.602.0",
     "@types/express": "^4.17.21",
     "esbuild": "^0.23.0",
+    "firebase": "^10.12.5",
     "tsx": "^4.16.2",
     "typescript": "^5.5.2"
   },
