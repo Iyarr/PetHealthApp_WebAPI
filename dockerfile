@@ -17,6 +17,6 @@ COPY --from=builder /app/dist ./dist
 
 RUN npm install --production
 
-EXPOSE 8000
+EXPOSE 3000
 
 CMD ["npm", "start"]
