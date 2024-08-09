@@ -1,19 +1,9 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { UserModel } from "../models/user.js";
-import dotenv from "dotenv";
 import { UserPutItem, UserPostItem } from "../type.js";
+import { dbClient } from "../test.js";
 
-dotenv.config();
-
-const dbClient = new DynamoDBClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
 const userModel = new UserModel();
 const testUserItem: UserPostItem = {
   id: "testId",
@@ -21,19 +11,22 @@ const testUserItem: UserPostItem = {
   email: "test@email",
 };
 
-const UpdatedUserItem: UserPutItem = {
+const PutUserItem: UserPutItem = {
   email: "updated@email",
 };
 
 test("Read user", async () => {
   const command = userModel.getItemCommand(testUserItem.id);
   const response = await dbClient.send(command);
+  if (!response.Item) {
+    strict.fail("Item not found");
+  }
   strict.deepStrictEqual(userModel.formatItemFromCommand(response.Item), testUserItem);
   console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
 });
 
 test("Update user", async () => {
-  const command = userModel.updateItemCommand(testUserItem.id, UpdatedUserItem);
+  const command = userModel.updateItemCommand(testUserItem.id, PutUserItem);
   const response = await dbClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
@@ -42,8 +35,14 @@ test("Update user", async () => {
 test("Read updated user", async () => {
   const command = userModel.getItemCommand(testUserItem.id);
   const response = await dbClient.send(command);
-  //strict.deepStrictEqual(userModel.formatItemFromCommand(response.Item), UpdatedUserItem);
-  console.log(JSON.stringify(response.Item));
+  if (!response.Item) {
+    strict.fail("Item not found");
+  }
+  strict.deepStrictEqual(
+    userModel.formatItemFromCommand(response.Item),
+    Object.assign(testUserItem, PutUserItem)
+  );
+  console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
 });
 
 test("Delete user", async () => {

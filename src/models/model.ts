@@ -8,7 +8,10 @@ import {
 export class Model {
   tableName: string;
   constructor(tableName: string) {
-    this.tableName = tableName;
+    if (!process.env.TABLE_PREFIX) {
+      throw new Error("TABLE_PREFIX is not defined");
+    }
+    this.tableName = process.env.TABLE_PREFIX + tableName;
   }
 
   getItemCommand(id: string) {
@@ -62,7 +65,7 @@ export class Model {
     for (const [key, value] of Object.entries(item)) {
       if (value.hasOwnProperty("BOOL")) {
         formatedItem[key] = value.BOOL;
-      } else if (value.hasOwnProperty("N")) {
+      } else if (value.hasOwnProperty("N") && value.N !== undefined) {
         formatedItem[key] = parseInt(value.N);
       } else if (value.hasOwnProperty("S")) {
         formatedItem[key] = value.S;
@@ -74,11 +77,13 @@ export class Model {
 
   createAttributeValue(value: number | boolean | string): AttributeValue {
     if (typeof value === "boolean") {
-      return { BOOL: value };
+      return { BOOL: value } as AttributeValue;
     } else if (typeof value === "number") {
-      return { N: value.toString() };
+      return { N: value.toString() } as AttributeValue;
     } else if (typeof value === "string") {
-      return { S: value };
+      return { S: value } as AttributeValue;
+    } else {
+      throw new Error("Unsupported type");
     }
   }
 }

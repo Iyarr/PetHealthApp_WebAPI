@@ -1,12 +1,12 @@
 import { PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
-import { UserPostItem } from "../type.js";
+import { DogPostItem } from "../type.js";
 
-export class UserModel extends Model {
+export class DogModel extends Model {
   constructor() {
-    super("Users");
+    super("Dogs");
   }
-  postItemCommand(item: UserPostItem) {
+  postItemCommand(item: DogPostItem) {
     return new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
