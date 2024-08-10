@@ -63,11 +63,11 @@ export class Model {
   formatItemFromCommand(item: Record<string, AttributeValue>) {
     const formatedItem: object = {};
     for (const [key, value] of Object.entries(item)) {
-      if (value.hasOwnProperty("BOOL")) {
+      if (value.hasOwnProperty("BOOL") && value.BOOL !== undefined) {
         formatedItem[key] = value.BOOL;
       } else if (value.hasOwnProperty("N") && value.N !== undefined) {
         formatedItem[key] = parseInt(value.N);
-      } else if (value.hasOwnProperty("S")) {
+      } else if (value.hasOwnProperty("S") && value.S !== undefined) {
         formatedItem[key] = value.S;
       }
     }
