@@ -2,9 +2,10 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
 import { config } from "dotenv";
+import { getEnv } from "./utils.js";
 
 config();
-const PORT = process.env.PORT || 3000;
+const PORT = getEnv("PORT");
 const app = express();
 const client = new DynamoDBClient();
 
@@ -18,4 +19,4 @@ app.get("/", (req: Request, res: Response) => {
   res.json(body);
 });
 
-app.listen(PORT, () => console.log("API Server is running on port 3000"));
+app.listen(PORT, () => console.log(`API Server is running on port ${PORT}`));

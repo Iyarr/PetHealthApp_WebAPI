@@ -1,17 +1,16 @@
 import {
   DeleteItemCommand,
   GetItemCommand,
+  BatchGetItemCommand,
   UpdateItemCommand,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
+import { getEnv } from "../utils.js";
 
 export class Model {
   tableName: string;
   constructor(tableName: string) {
-    if (!process.env.TABLE_PREFIX) {
-      throw new Error("TABLE_PREFIX is not defined");
-    }
-    this.tableName = process.env.TABLE_PREFIX + tableName;
+    this.tableName = getEnv("TABLE_PREFIX") + tableName;
   }
 
   getItemCommand(id: string) {
@@ -19,6 +18,22 @@ export class Model {
       TableName: this.tableName,
       Key: {
         id: { S: id },
+      },
+    });
+  }
+
+  batchGetItemCommand(ids: string[]) {
+    const keys: Record<string, AttributeValue>[] = [];
+    for (const id of ids) {
+      keys.push({
+        id: { S: id },
+      });
+    }
+    return new BatchGetItemCommand({
+      RequestItems: {
+        [this.tableName]: {
+          Keys: keys,
+        },
       },
     });
   }
@@ -63,27 +78,26 @@ export class Model {
   formatItemFromCommand(item: Record<string, AttributeValue>) {
     const formatedItem: object = {};
     for (const [key, value] of Object.entries(item)) {
-      if (value.hasOwnProperty("BOOL") && value.BOOL !== undefined) {
-        formatedItem[key] = value.BOOL;
-      } else if (value.hasOwnProperty("N") && value.N !== undefined) {
-        formatedItem[key] = parseInt(value.N);
-      } else if (value.hasOwnProperty("S") && value.S !== undefined) {
-        formatedItem[key] = value.S;
-      }
+      ["BOOL", "N", "S"].forEach((type) => {
+        if (value.hasOwnProperty(type) && value[type]) {
+          formatedItem[key] = value[type];
+        }
+      });
     }
-
     return formatedItem;
   }
 
   createAttributeValue(value: number | boolean | string): AttributeValue {
+    const attributeValue = {} as AttributeValue;
     if (typeof value === "boolean") {
-      return { BOOL: value } as AttributeValue;
+      attributeValue.BOOL = value;
     } else if (typeof value === "number") {
-      return { N: value.toString() } as AttributeValue;
+      attributeValue.N = value.toString();
     } else if (typeof value === "string") {
-      return { S: value } as AttributeValue;
+      attributeValue.S = value;
     } else {
-      throw new Error("Unsupported type");
+      throw new Error("Could not create AttributeValue");
     }
+    return attributeValue;
   }
 }
