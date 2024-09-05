@@ -1,12 +1,14 @@
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
 import { createDBClient } from "./utils/client.js";
+import { Firebase } from "./middle/firebase.js";
 import { getEnv } from "./utils/env.js";
 
 const PORT = getEnv("PORT");
 const app = express();
 
 app.set("client", createDBClient());
+app.set("firebase", new Firebase());
 app.use(express.json());
 
 app.use("/user", userRouter);
