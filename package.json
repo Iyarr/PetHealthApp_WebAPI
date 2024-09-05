@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "build": "find src -name '*.ts' | xargs npx esbuild --format=esm --platform=node --outdir=dist",
-    "test": "rm -r dist && npm run build && node --test"
+    "test": "rm -rf dist && npm run build && node --test"
   },
   "author": "",
   "license": "ISC",
