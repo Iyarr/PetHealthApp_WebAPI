@@ -41,7 +41,7 @@ test("Read updated user", async () => {
   }
   strict.deepStrictEqual(
     userModel.formatItemFromCommand(response.Item),
-    Object.assign(testUserItem, PutUserItem)
+    Object.assign({}, testUserItem, PutUserItem)
   );
   console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
 });

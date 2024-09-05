@@ -3,7 +3,6 @@ import { strict } from "node:assert";
 import { DogPutItem, DogPostItem } from "../type.js";
 import { DogModel } from "../models/dog.js";
 import { createDBClient } from "../utils/client.js";
-import { config } from "dotenv";
 
 const testDogItem: DogPostItem = {
   id: "testId",
