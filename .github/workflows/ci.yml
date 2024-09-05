@@ -9,6 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Build the Docker image
-        run: docker build . --tag my-image-name:$(date +%s)
+        run: docker build . --tag node_image:latest
+
+      - name: Run Docker container
+        run: docker run node_image:latest -d --name node_container -p 3000:3000
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test
