@@ -2,9 +2,10 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { UserModel } from "../models/user.js";
 import { UserPutItem, UserPostItem } from "../type.js";
-import { dbClient } from "../test.js";
+import { createDBClient } from "../utils/client.js";
 
 const userModel = new UserModel();
+const dbClient = createDBClient();
 const testUserItem: UserPostItem = {
   id: "testId",
   name: "testName",

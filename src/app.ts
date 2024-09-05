@@ -1,15 +1,12 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
-import { config } from "dotenv";
-import { getEnv } from "./utils.js";
+import { createDBClient } from "./utils/client.js";
+import { getEnv } from "./utils/env.js";
 
-config();
 const PORT = getEnv("PORT");
 const app = express();
-const client = new DynamoDBClient();
 
-app.set("client", client);
+app.set("client", createDBClient());
 app.use(express.json());
 
 app.use("/user", userRouter);

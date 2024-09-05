@@ -5,7 +5,7 @@ import {
   UpdateItemCommand,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
-import { getEnv } from "../utils.js";
+import { getEnv } from "../utils/env.js";
 
 export class Model {
   tableName: string;
