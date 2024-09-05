@@ -38,7 +38,10 @@ jobs:
         with:
           node-version: 20
 
-      - if: github.base_ref == 'develop'
-        run: |
-          npm install
-          npm test
+      - name: Install dependencies
+        if: github.base_ref == 'develop'
+        run: npm install
+
+      - name: Run tests
+        if: github.base_ref == 'develop'
+        run: npm test
