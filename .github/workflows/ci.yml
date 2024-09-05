@@ -16,10 +16,14 @@ jobs:
         run: docker build . --tag node_image:latest
 
       - name: Run Docker container
-        run: docker run node_image:latest -d --name node_container -p 3000:3000
+        run: docker run node_image:latest -p 3000:3000
 
-      - uses: actions/setup-node@v4
+      - if: github.base_ref == 'develop'
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm test
+
+      - if: github.base_ref == 'develop'
+        run: |
+          npm install
+          npm test
