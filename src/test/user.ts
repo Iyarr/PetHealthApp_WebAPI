@@ -2,9 +2,10 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { UserModel } from "../models/user.js";
 import { UserPutItem, UserPostItem } from "../type.js";
-import { dbClient } from "../test.js";
+import { createDBClient } from "../utils/client.js";
 
 const userModel = new UserModel();
+const dbClient = createDBClient();
 const testUserItem: UserPostItem = {
   id: "testId",
   name: "testName",
@@ -40,7 +41,7 @@ test("Read updated user", async () => {
   }
   strict.deepStrictEqual(
     userModel.formatItemFromCommand(response.Item),
-    Object.assign(testUserItem, PutUserItem)
+    Object.assign({}, testUserItem, PutUserItem)
   );
   console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
 });

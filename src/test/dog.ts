@@ -2,7 +2,7 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogPutItem, DogPostItem } from "../type.js";
 import { DogModel } from "../models/dog.js";
-import { dbClient } from "../test.js";
+import { createDBClient } from "../utils/client.js";
 
 const testDogItem: DogPostItem = {
   id: "testId",
@@ -18,6 +18,7 @@ const PutDogItem: DogPutItem = {
 };
 
 const dogModel = new DogModel();
+const dbClient = createDBClient();
 
 test("Create dog", async () => {
   const command = dogModel.postItemCommand(testDogItem);

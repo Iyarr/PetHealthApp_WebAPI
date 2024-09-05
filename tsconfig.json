@@ -12,6 +12,6 @@
     "outDir": "./dist",
     "allowJs": true
   },
-  "include": ["src/**.ts"],
+  "include": ["src/**.ts", "src/utils/env.ts"],
   "exclude": ["node_modules"]
 }
