@@ -31,7 +31,7 @@ jobs:
             -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e TABLE_PREFIX=${TABLE_PREFIX} \
-            node_image:latest
+            node_image
 
       - if: github.base_ref == 'develop'
         uses: actions/setup-node@v4
@@ -40,7 +40,8 @@ jobs:
 
       - name: Install dependencies
         if: github.base_ref == 'develop'
-        run: npm install
+        run: |
+          npm install
 
       - name: Run tests
         if: github.base_ref == 'develop'
