@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
+import { FirebaseApp } from "../utils/firebase.js";
 import { getAuth } from "firebase-admin/auth";
+import { confirmDecodedTokenIsValid } from "../utils/firebase.js";
 
 export const tokenAuth = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.header("Authorization");
@@ -10,15 +12,13 @@ export const tokenAuth = async (req: Request, res: Response, next: NextFunction)
     return res.status(401).send("Authorization header format is invalid");
   }
 
-  const firebase = req.app.get("firebase");
-  const auth = getAuth(firebase);
-  const decodedToken = await auth.verifyIdToken(token.split(" ")[1]);
-  // 他にもトークンを検証する処理を追加する
-  if (decodedToken.aud !== firebase.options.projectId) {
-    return res.status(401).send("Token is invalid");
+  const auth = getAuth(FirebaseApp);
+  const decodedIdToken = await auth.verifyIdToken(token);
+
+  if (confirmDecodedTokenIsValid(decodedIdToken)) {
+    req.body.uid = decodedIdToken.aud;
+    next();
+  } else {
+    return res.status(401).send("Invalid Token");
   }
-
-  req.body.uid = decodedToken.uid;
-
-  next();
 };
