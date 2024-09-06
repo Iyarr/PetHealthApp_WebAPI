@@ -2,7 +2,7 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogPutItem, DogPostItem } from "../type.js";
 import { DogModel } from "../models/dog.js";
-import { createDBClient } from "../utils/client.js";
+import { createDBClient } from "../utils/dynamodb.js";
 
 const testDogItem: DogPostItem = {
   id: "testId",
