@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { FirebaseApp } from "../utils/firebase.js";
-import { getAuth } from "firebase-admin/auth";
-import { confirmDecodedTokenIsValid } from "../utils/firebase.js";
+import { getValidUidFromToken } from "../utils/firebase.js";
 
 export const tokenAuth = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.header("Authorization");
@@ -12,11 +10,10 @@ export const tokenAuth = async (req: Request, res: Response, next: NextFunction)
     return res.status(401).send("Authorization header format is invalid");
   }
 
-  const auth = getAuth(FirebaseApp);
-  const decodedIdToken = await auth.verifyIdToken(token);
+  const uid = await getValidUidFromToken(token.split(" ")[1]);
 
-  if (confirmDecodedTokenIsValid(decodedIdToken)) {
-    req.body.uid = decodedIdToken.aud;
+  if (uid !== "") {
+    req.body.uid = uid;
     next();
   } else {
     return res.status(401).send("Invalid Token");
