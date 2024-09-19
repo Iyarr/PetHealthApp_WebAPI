@@ -20,14 +20,14 @@ const PutDogItem: DogPutItem = {
 const dogModel = new DogModel();
 
 test("Create dog", async () => {
-  const command = dogModel.postItemCommand(testDogItem);
+  const command = dogModel.postItemCommand<DogPostItem>(testDogItem);
   const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
 });
 
 test("Read dog", async () => {
-  const command = dogModel.getItemCommand(testDogItem.id);
+  const command = dogModel.getItemCommand({ id: testDogItem.id });
   const response = await DBClient.send(command);
   if (!response.Item) {
     strict.fail("Item not found");
@@ -37,14 +37,14 @@ test("Read dog", async () => {
 });
 
 test("Update dog", async () => {
-  const command = dogModel.updateItemCommand(testDogItem.id, PutDogItem);
+  const command = dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
   const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
 });
 
 test("Read updated dog", async () => {
-  const command = dogModel.getItemCommand(testDogItem.id);
+  const command = dogModel.getItemCommand({ id: testDogItem.id });
   const response = await DBClient.send(command);
   if (!response.Item) {
     strict.fail("Item not found");
@@ -57,7 +57,7 @@ test("Read updated dog", async () => {
 });
 
 test("Delete dog", async () => {
-  const command = dogModel.deleteItemCommand(testDogItem.id);
+  const command = dogModel.deleteItemCommand({ id: testDogItem.id });
   const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));

@@ -1,17 +1,17 @@
 import { QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 
-export class DogModel extends Model {
+export class AllowUserModel extends Model {
   constructor() {
-    super("Dogs");
+    super("AllowUsers");
   }
 
-  batchGetMyDogs(id: string) {
+  batchGetDogsFromId(id: string) {
     return new QueryCommand({
       TableName: this.tableName,
-      IndexName: "hostIdIndex",
+      IndexName: "allowUserIdIndex",
       KeyConditions: {
-        hostId: {
+        allowUserId: {
           ComparisonOperator: "EQ",
           AttributeValueList: [{ S: id }],
         },
