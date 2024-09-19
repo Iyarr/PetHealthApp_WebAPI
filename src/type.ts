@@ -23,3 +23,8 @@ export type DogPutItem = {
   size?: string;
   hostId?: string;
 };
+
+export type AllowUserPostItem = {
+  userId: string;
+  dogId: string;
+};

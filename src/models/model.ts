@@ -1,7 +1,9 @@
 import {
   DeleteItemCommand,
   GetItemCommand,
+  PutItemCommand,
   BatchGetItemCommand,
+  BatchWriteItemCommand,
   UpdateItemCommand,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
@@ -13,21 +15,41 @@ export class Model {
     this.tableName = getEnv("TABLE_PREFIX") + tableName;
   }
 
-  getItemCommand(id: string) {
-    return new GetItemCommand({
+  postItemCommand(item: object) {
+    return new PutItemCommand({
       TableName: this.tableName,
-      Key: {
-        id: { S: id },
-      },
+      Item: this.formatItemForCommand(item),
     });
   }
 
-  batchGetItemCommand(ids: string[]) {
-    const keys: Record<string, AttributeValue>[] = [];
-    for (const id of ids) {
-      keys.push({
-        id: { S: id },
+  // 項目を追加 or 削除できるのは25個まで
+  batchWriteItemCommand(items: object[]) {
+    const requestItems: Record<string, object[]> = {};
+    requestItems[this.tableName] = [];
+    for (const item of items) {
+      requestItems[this.tableName].push({
+        PutRequest: {
+          Item: this.formatItemForCommand(item),
+        },
       });
+    }
+    return new BatchWriteItemCommand({
+      RequestItems: requestItems,
+    });
+  }
+
+  getItemCommand(pk: object) {
+    return new GetItemCommand({
+      TableName: this.tableName,
+      Key: this.formatItemForCommand(pk),
+    });
+  }
+
+  // 項目を取得できるのは100個まで
+  batchGetItemCommand(pks: object[]) {
+    const keys: Record<string, AttributeValue>[] = [];
+    for (const pk of pks) {
+      keys.push(this.formatItemForCommand(pk));
     }
     return new BatchGetItemCommand({
       RequestItems: {
@@ -38,16 +60,7 @@ export class Model {
     });
   }
 
-  deleteItemCommand(id: string) {
-    return new DeleteItemCommand({
-      TableName: this.tableName,
-      Key: {
-        id: { S: id },
-      },
-    });
-  }
-
-  updateItemCommand(id: string, item: object) {
+  updateItemCommand(pk: object, item: object) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     var expressionAttributeValues: Record<string, AttributeValue> = {};
@@ -58,15 +71,21 @@ export class Model {
     }
     return new UpdateItemCommand({
       TableName: this.tableName,
-      Key: {
-        id: { S: id },
-      },
+      Key: this.formatItemForCommand(pk),
       UpdateExpression: `set ${updateItems.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
     });
   }
 
+  deleteItemCommand(pk: object) {
+    return new DeleteItemCommand({
+      TableName: this.tableName,
+      Key: this.formatItemForCommand(pk),
+    });
+  }
+
+  // オブジェクトをDynamoDBのCommandでの形式に変換
   formatItemForCommand(item: object): Record<string, AttributeValue> {
     const formatedItem: Record<string, AttributeValue> = {};
     for (const [key, value] of Object.entries(item)) {
@@ -75,6 +94,7 @@ export class Model {
     return formatedItem;
   }
 
+  // DynamoDBのCommandでの形式をオブジェクトに変換
   formatItemFromCommand(item: Record<string, AttributeValue>) {
     const formatedItem: object = {};
     for (const [key, value] of Object.entries(item)) {
@@ -87,6 +107,7 @@ export class Model {
     return formatedItem;
   }
 
+  // AttributeValueを生成
   createAttributeValue(value: number | boolean | string): AttributeValue {
     const attributeValue = {} as AttributeValue;
     if (typeof value === "boolean") {
