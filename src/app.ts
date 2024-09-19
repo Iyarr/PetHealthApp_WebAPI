@@ -1,15 +1,15 @@
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
-import { createDBClient } from "./utils/client.js";
+import { tokenAuth } from "./middle/auth.js";
 import { getEnv } from "./utils/env.js";
 
 const PORT = getEnv("PORT");
 const app = express();
 
-app.set("client", createDBClient());
 app.use(express.json());
 
 app.use("/user", userRouter);
+app.use(tokenAuth);
 
 app.get("/", (req: Request, res: Response) => {
   const body = req.body;

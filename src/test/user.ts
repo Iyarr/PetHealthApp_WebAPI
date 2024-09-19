@@ -2,10 +2,9 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { UserModel } from "../models/user.js";
 import { UserPutItem, UserPostItem } from "../type.js";
-import { createDBClient } from "../utils/client.js";
+import { DBClient } from "../utils/dynamodb.js";
 
 const userModel = new UserModel();
-const dbClient = createDBClient();
 const testUserItem: UserPostItem = {
   id: "testId",
   name: "testName",
@@ -18,7 +17,7 @@ const PutUserItem: UserPutItem = {
 
 test("Read user", async () => {
   const command = userModel.getItemCommand(testUserItem.id);
-  const response = await dbClient.send(command);
+  const response = await DBClient.send(command);
   if (!response.Item) {
     strict.fail("Item not found");
   }
@@ -28,14 +27,14 @@ test("Read user", async () => {
 
 test("Update user", async () => {
   const command = userModel.updateItemCommand(testUserItem.id, PutUserItem);
-  const response = await dbClient.send(command);
+  const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
 });
 
 test("Read updated user", async () => {
   const command = userModel.getItemCommand(testUserItem.id);
-  const response = await dbClient.send(command);
+  const response = await DBClient.send(command);
   if (!response.Item) {
     strict.fail("Item not found");
   }
@@ -48,14 +47,14 @@ test("Read updated user", async () => {
 
 test("Delete user", async () => {
   const command = userModel.deleteItemCommand(testUserItem.id);
-  const response = await dbClient.send(command);
+  const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
 });
 
 test("Create user", async () => {
   const command = userModel.postItemCommand(testUserItem);
-  const response = await dbClient.send(command);
+  const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
 });
