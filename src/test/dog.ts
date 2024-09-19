@@ -20,7 +20,7 @@ const PutDogItem: DogPutItem = {
 const dogModel = new DogModel();
 
 test("Create dog", async () => {
-  const command = dogModel.postItemCommand(testDogItem);
+  const command = dogModel.postItemCommand<DogPostItem>(testDogItem);
   const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));

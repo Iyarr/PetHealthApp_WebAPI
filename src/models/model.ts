@@ -15,7 +15,7 @@ export class Model {
     this.tableName = getEnv("TABLE_PREFIX") + tableName;
   }
 
-  postItemCommand(item: object) {
+  postItemCommand<T extends object>(item: T) {
     return new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
@@ -23,7 +23,7 @@ export class Model {
   }
 
   // 項目を追加 or 削除できるのは25個まで
-  batchWriteItemCommand(items: object[]) {
+  batchWriteItemCommand<T extends object>(items: T[]) {
     const requestItems: Record<string, object[]> = {};
     requestItems[this.tableName] = [];
     for (const item of items) {
@@ -38,7 +38,7 @@ export class Model {
     });
   }
 
-  getItemCommand(pk: object) {
+  getItemCommand<T extends object>(pk: T) {
     return new GetItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
@@ -46,7 +46,7 @@ export class Model {
   }
 
   // 項目を取得できるのは100個まで
-  batchGetItemCommand(pks: object[]) {
+  batchGetItemCommand<T extends object>(pks: T[]) {
     const keys: Record<string, AttributeValue>[] = [];
     for (const pk of pks) {
       keys.push(this.formatItemForCommand(pk));
@@ -78,7 +78,7 @@ export class Model {
     });
   }
 
-  deleteItemCommand(pk: object) {
+  deleteItemCommand<T extends object>(pk: T) {
     return new DeleteItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
@@ -86,7 +86,7 @@ export class Model {
   }
 
   // オブジェクトをDynamoDBのCommandでの形式に変換
-  formatItemForCommand(item: object): Record<string, AttributeValue> {
+  formatItemForCommand<T extends object>(item: T): Record<string, AttributeValue> {
     const formatedItem: Record<string, AttributeValue> = {};
     for (const [key, value] of Object.entries(item)) {
       formatedItem[key] = this.createAttributeValue(value);

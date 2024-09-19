@@ -53,7 +53,7 @@ test("Delete user", async () => {
 });
 
 test("Create user", async () => {
-  const command = userModel.postItemCommand(testUserItem);
+  const command = userModel.postItemCommand<UserPostItem>(testUserItem);
   const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
