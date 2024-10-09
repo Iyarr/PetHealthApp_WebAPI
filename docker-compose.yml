@@ -1,0 +1,20 @@
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+
+  api:
+    build: .
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - DYNAMODB_HOST: dynamodb-local
+      - TABLE_PREFIX: Test_
+      - FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      - FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      - AWS_ACCESS_KEY_ID: DUMMYIDEXAMPLE
+      - AWS_SECRET_ACCESS_KEY: DUMMYEXAMPLEKEY
+      - REGION: eu-west-1
+    depends_on:
+      - dynamodb-local
