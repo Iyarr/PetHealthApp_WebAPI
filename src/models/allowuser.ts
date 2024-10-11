@@ -1,13 +1,14 @@
 import { QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
+import { DBClient } from "../utils/dynamodb.js";
 
-export class AllowUserModel extends Model {
+class AllowUserModel extends Model {
   constructor() {
     super("AllowUsers");
   }
 
-  batchGetDogsFromId(id: string) {
-    return new QueryCommand({
+  async batchGetDogsFromId(id: string) {
+    const command = new QueryCommand({
       TableName: this.tableName,
       IndexName: "allowUserIdIndex",
       KeyConditions: {
@@ -17,5 +18,8 @@ export class AllowUserModel extends Model {
         },
       },
     });
+    return await DBClient.send(command);
   }
 }
+
+export const allowUserModel = new AllowUserModel();

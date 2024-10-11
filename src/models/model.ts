@@ -8,6 +8,7 @@ import {
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
 import { getEnv } from "../utils/env.js";
+import { DBClient } from "../utils/dynamodb.js";
 
 export class Model {
   tableName: string;
@@ -15,15 +16,16 @@ export class Model {
     this.tableName = getEnv("TABLE_PREFIX") + tableName;
   }
 
-  postItemCommand<T extends object>(item: T) {
-    return new PutItemCommand({
+  async postItemCommand<T extends object>(item: T) {
+    const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
     });
+    return await DBClient.send(command);
   }
 
   // 項目を追加 or 削除できるのは25個まで
-  batchWriteItemCommand<T extends object>(items: T[]) {
+  async batchWriteItemCommand<T extends object>(items: T[]) {
     const requestItems: Record<string, object[]> = {};
     requestItems[this.tableName] = [];
     for (const item of items) {
@@ -33,34 +35,37 @@ export class Model {
         },
       });
     }
-    return new BatchWriteItemCommand({
+    const command = new BatchWriteItemCommand({
       RequestItems: requestItems,
     });
+    return await DBClient.send(command);
   }
 
-  getItemCommand<T extends object>(pk: T) {
-    return new GetItemCommand({
+  async getItemCommand<T extends object>(pk: T) {
+    const command = new GetItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
     });
+    return await DBClient.send(command);
   }
 
   // 項目を取得できるのは100個まで
-  batchGetItemCommand<T extends object>(pks: T[]) {
+  async batchGetItemCommand<T extends object>(pks: T[]) {
     const keys: Record<string, AttributeValue>[] = [];
     for (const pk of pks) {
       keys.push(this.formatItemForCommand(pk));
     }
-    return new BatchGetItemCommand({
+    const command = new BatchGetItemCommand({
       RequestItems: {
         [this.tableName]: {
           Keys: keys,
         },
       },
     });
+    return await DBClient.send(command);
   }
 
-  updateItemCommand(pk: object, item: object) {
+  async updateItemCommand(pk: object, item: object) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     var expressionAttributeValues: Record<string, AttributeValue> = {};
@@ -69,20 +74,22 @@ export class Model {
       expressionAttributeNames[`#${key}`] = key;
       expressionAttributeValues[`:${key}`] = this.createAttributeValue(value);
     }
-    return new UpdateItemCommand({
+    const command = new UpdateItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
       UpdateExpression: `set ${updateItems.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
     });
+    return await DBClient.send(command);
   }
 
-  deleteItemCommand<T extends object>(pk: T) {
-    return new DeleteItemCommand({
+  async deleteItemCommand<T extends object>(pk: T) {
+    const command = new DeleteItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
     });
+    return await DBClient.send(command);
   }
 
   // オブジェクトをDynamoDBのCommandでの形式に変換
