@@ -16,4 +16,9 @@ app.get("/", (req: Request, res: Response) => {
   res.json(body);
 });
 
+app.use((err: Error, req: Request, res: Response) => {
+  console.error(err);
+  res.status(500).json({ message: "Internal Server Error" });
+});
+
 app.listen(PORT, () => console.log(`API Server is running on port ${PORT}`));
