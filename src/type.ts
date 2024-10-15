@@ -1,4 +1,5 @@
 export type UserPostItem = {
+  uid: string;
   id: string;
   name: string;
   email: string;

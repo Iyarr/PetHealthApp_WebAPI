@@ -1,13 +1,14 @@
 import { QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
+import { DBClient } from "../utils/dynamodb.js";
 
-export class DogModel extends Model {
+class DogModel extends Model {
   constructor() {
     super("Dogs");
   }
 
-  batchGetMyDogs(id: string) {
-    return new QueryCommand({
+  async batchGetMyDogs(id: string) {
+    const command = new QueryCommand({
       TableName: this.tableName,
       IndexName: "hostIdIndex",
       KeyConditions: {
@@ -17,5 +18,8 @@ export class DogModel extends Model {
         },
       },
     });
+    return await DBClient.send(command);
   }
 }
+
+export const dogModel = new DogModel();
