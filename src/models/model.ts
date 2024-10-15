@@ -21,7 +21,13 @@ export class Model {
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
     });
-    return await DBClient.send(command);
+
+    const result = await DBClient.send(command);
+    if (result.$metadata.httpStatusCode !== 200) {
+      console.log(result);
+      throw new Error("Failed to post item");
+    }
+    return result;
   }
 
   // 項目を追加 or 削除できるのは25個まで
@@ -38,7 +44,13 @@ export class Model {
     const command = new BatchWriteItemCommand({
       RequestItems: requestItems,
     });
-    return await DBClient.send(command);
+
+    const result = await DBClient.send(command);
+    if (result.$metadata.httpStatusCode !== 200) {
+      console.log(result);
+      throw new Error("Failed to post item");
+    }
+    return result;
   }
 
   async getItemCommand<T extends object>(pk: T) {
@@ -46,7 +58,13 @@ export class Model {
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
     });
-    return await DBClient.send(command);
+
+    const result = await DBClient.send(command);
+    if (result.$metadata.httpStatusCode !== 200) {
+      console.log(result);
+      throw new Error("Failed to get response");
+    }
+    return result.Item;
   }
 
   // 項目を取得できるのは100個まで
@@ -62,7 +80,13 @@ export class Model {
         },
       },
     });
-    return await DBClient.send(command);
+
+    const result = await DBClient.send(command);
+    if (result.$metadata.httpStatusCode !== 200) {
+      console.log(result);
+      throw new Error("Failed to get response");
+    }
+    return result.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
   }
 
   async updateItemCommand(pk: object, item: object) {
@@ -81,7 +105,13 @@ export class Model {
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
     });
-    return await DBClient.send(command);
+
+    const result = await DBClient.send(command);
+    if (result.$metadata.httpStatusCode !== 200) {
+      console.log(result);
+      throw new Error("Failed to get response");
+    }
+    return this.formatItemFromCommand(result.Attributes);
   }
 
   async deleteItemCommand<T extends object>(pk: T) {
@@ -89,7 +119,13 @@ export class Model {
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
     });
-    return await DBClient.send(command);
+
+    const result = await DBClient.send(command);
+    if (result.$metadata.httpStatusCode !== 200) {
+      console.log(result);
+      throw new Error("Failed to post item");
+    }
+    return result;
   }
 
   // オブジェクトをDynamoDBのCommandでの形式に変換
