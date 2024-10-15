@@ -1,6 +1,8 @@
 services:
   dynamodb-local:
     image: amazon/dynamodb-local
+    ports:
+      - "${PORT}:${PORT}"
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
 
   api:
@@ -8,7 +10,7 @@ services:
     ports:
       - "${PORT}:${PORT}"
     environment:
-      - DYNAMODB_HOST: dynamodb-local
+      - DYNAMODB_ENDPOINT: dynamodb-local:${PORT}
       - TABLE_PREFIX: Test_
       - FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       - FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
@@ -18,3 +20,4 @@ services:
       - REGION: eu-west-1
     depends_on:
       - dynamodb-local
+    command: "node --test"
