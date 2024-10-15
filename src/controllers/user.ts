@@ -5,7 +5,7 @@ import { userModel } from "../models/user.js";
 export const userController = {
   async create(req: Request, res: Response) {
     const user: UserPostItem = req.body;
-    const result = await userModel.postItemCommand(user);
+    const result = await userModel.postItemCommand<UserPostItem>(user);
 
     res.status(201).json({ message: "User created" });
   },
