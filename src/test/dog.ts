@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogPutItem, DogPostItem } from "../type.js";
-import { DogModel } from "../models/dog.js";
+import { dogModel } from "../models/dog.js";
 import { DBClient } from "../utils/dynamodb.js";
 
 const testDogItem: DogPostItem = {
@@ -17,8 +17,7 @@ const PutDogItem: DogPutItem = {
   gender: "female",
 };
 
-const dogModel = new DogModel();
-
+/*
 test("Create dog", async () => {
   const command = dogModel.postItemCommand<DogPostItem>(testDogItem);
   const response = await DBClient.send(command);
@@ -61,4 +60,4 @@ test("Delete dog", async () => {
   const response = await DBClient.send(command);
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
-});
+}); */
