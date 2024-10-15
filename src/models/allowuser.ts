@@ -2,17 +2,17 @@ import { QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 
-class DogModel extends Model {
+class AllowUserModel extends Model {
   constructor() {
-    super("Dogs");
+    super("AllowUsers");
   }
 
-  async batchGetMyDogs(id: string) {
+  async batchGetDogsFromId(id: string) {
     const command = new QueryCommand({
       TableName: this.tableName,
-      IndexName: "hostIdIndex",
+      IndexName: "allowUserIdIndex",
       KeyConditions: {
-        hostId: {
+        allowUserId: {
           ComparisonOperator: "EQ",
           AttributeValueList: [{ S: id }],
         },
@@ -22,4 +22,4 @@ class DogModel extends Model {
   }
 }
 
-export const dogModel = new DogModel();
+export const allowUserModel = new AllowUserModel();

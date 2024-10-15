@@ -6,12 +6,12 @@
     "noEmitOnError": true,
     "removeComments": false,
     "sourceMap": false,
-    "target": "es2020",
+    "target": "es2021",
     "module": "NodeNext",
     "rootDir": "./src",
     "outDir": "./dist",
     "allowJs": true
   },
-  "include": ["src/**.ts"],
+  "include": ["src/**/**.ts"],
   "exclude": ["node_modules"]
 }
