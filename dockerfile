@@ -6,7 +6,7 @@ COPY tsconfig.json ./tsconfig.json
 COPY src ./src
 
 RUN npm install && \
-    find src -name "*.ts" | xargs npx esbuild --format=esm --platform=node --outdir=dist
+    npm run build
 
 FROM node:20-slim
 

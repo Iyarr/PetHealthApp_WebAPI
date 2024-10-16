@@ -19,6 +19,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build the Docker image
+      - name: Run Docker Compose
         run: |
-          docker build . --tag node_image:latest
+          docker compose up -d
