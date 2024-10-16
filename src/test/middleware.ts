@@ -1,7 +1,14 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
+import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getValidUidFromToken } from "../middle/firebase.js";
+import { getEnv } from "../utils/env.js";
+
+const app = initializeApp({
+  apiKey: getEnv("FIREBASE_API_KEY"),
+  projectId: getEnv("FIREBASE_PROJECT_ID"),
+});
 
 // 一時的なアカウント作成用のランダム文字列を生成
 const random = Math.random().toString();
@@ -11,7 +18,7 @@ const user = {
   password: random,
 };
 
-const auth = getAuth();
+const auth = getAuth(app);
 const loginUser = await createUserWithEmailAndPassword(auth, user.email, user.password);
 const token = await loginUser.user.getIdToken();
 
