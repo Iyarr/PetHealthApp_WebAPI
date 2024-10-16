@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getValidUidFromToken } from "../utils/firebase.js";
+import { getValidUidFromToken } from "./firebase.js";
 
 export const tokenAuth = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.header("Authorization");
