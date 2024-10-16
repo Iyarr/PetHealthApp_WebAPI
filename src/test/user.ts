@@ -13,42 +13,37 @@ const testUserItem: UserPostItem = {
 const PutUserItem: UserPutItem = {
   email: "updated@email",
 };
-/*
+
 test("Read user", async () => {
   const response = await userModel.getItemCommand({ id: testUserItem.id });
-  if (!response.Item) {
+  if (!response) {
     strict.fail("Item not found");
   }
-  strict.deepStrictEqual(userModel.formatItemFromCommand(response.Item), testUserItem);
-  console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
+  strict.deepStrictEqual(response, testUserItem);
+  console.log(JSON.stringify(response));
 });
 
 test("Update user", async () => {
   const response = await userModel.updateItemCommand({ id: testUserItem.id }, PutUserItem);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
+  console.log(JSON.stringify(response));
 });
 
 test("Read updated user", async () => {
-  const response = userModel.getItemCommand({ id: testUserItem.id });
-  if (!response.Item) {
+  const response = await userModel.getItemCommand({ id: testUserItem.id });
+  if (!response) {
     strict.fail("Item not found");
   }
-  strict.deepStrictEqual(
-    userModel.formatItemFromCommand(response.Item),
-    Object.assign({}, testUserItem, PutUserItem)
-  );
-  console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
+  strict.deepStrictEqual(response, Object.assign({}, testUserItem, PutUserItem));
+  console.log(JSON.stringify(response));
 });
 
 test("Delete user", async () => {
-  const response = userModel.deleteItemCommand({ id: testUserItem.id });
+  const response = await userModel.deleteItemCommand({ id: testUserItem.id });
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
   console.log(JSON.stringify(response.$metadata));
 });
 
 test("Create user", async () => {
-  const response = userModel.postItemCommand<UserPostItem>(testUserItem);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-}); */
+  const response = await userModel.postItemCommand<UserPostItem>(testUserItem);
+  console.log(JSON.stringify(response));
+});

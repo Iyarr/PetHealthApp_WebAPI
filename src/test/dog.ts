@@ -17,47 +17,36 @@ const PutDogItem: DogPutItem = {
   gender: "female",
 };
 
-/*
 test("Create dog", async () => {
-  const command = dogModel.postItemCommand<DogPostItem>(testDogItem);
-  const response = await DBClient.send(command);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
+  const response = await dogModel.postItemCommand<DogPostItem>(testDogItem);
+  console.log(JSON.stringify(response));
 });
 
 test("Read dog", async () => {
-  const command = dogModel.getItemCommand({ id: testDogItem.id });
-  const response = await DBClient.send(command);
-  if (!response.Item) {
+  const responseItem = await dogModel.getItemCommand({ id: testDogItem.id });
+  if (!responseItem) {
     strict.fail("Item not found");
   }
-  strict.deepStrictEqual(dogModel.formatItemFromCommand(response.Item), testDogItem);
-  console.log(JSON.stringify(dogModel.formatItemFromCommand(response.Item)));
+  strict.deepStrictEqual(responseItem, testDogItem);
+  console.log(JSON.stringify(responseItem));
 });
 
 test("Update dog", async () => {
-  const command = dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
-  const response = await DBClient.send(command);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
+  const response = await dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
+  console.log(JSON.stringify(response));
 });
 
 test("Read updated dog", async () => {
-  const command = dogModel.getItemCommand({ id: testDogItem.id });
-  const response = await DBClient.send(command);
-  if (!response.Item) {
+  const response = await dogModel.getItemCommand({ id: testDogItem.id });
+  if (!response) {
     strict.fail("Item not found");
   }
-  strict.deepStrictEqual(
-    dogModel.formatItemFromCommand(response.Item),
-    Object.assign(testDogItem, PutDogItem)
-  );
-  console.log(JSON.stringify(dogModel.formatItemFromCommand(response.Item)));
+  strict.deepStrictEqual(response, Object.assign(testDogItem, PutDogItem));
+  console.log(JSON.stringify(response));
 });
 
 test("Delete dog", async () => {
-  const command = dogModel.deleteItemCommand({ id: testDogItem.id });
-  const response = await DBClient.send(command);
+  const response = await dogModel.deleteItemCommand({ id: testDogItem.id });
   strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-}); */
+  console.log(JSON.stringify(response));
+});

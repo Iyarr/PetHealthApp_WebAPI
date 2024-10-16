@@ -27,7 +27,7 @@ export class Model {
       console.log(result);
       throw new Error("Failed to post item");
     }
-    return result;
+    return this.formatItemFromCommand(result.Attributes);
   }
 
   // 項目を追加 or 削除できるのは25個まで
@@ -50,7 +50,7 @@ export class Model {
       console.log(result);
       throw new Error("Failed to post item");
     }
-    return result;
+    return result.UnprocessedItems;
   }
 
   async getItemCommand<T extends object>(pk: T) {
@@ -64,7 +64,7 @@ export class Model {
       console.log(result);
       throw new Error("Failed to get response");
     }
-    return result.Item;
+    return this.formatItemFromCommand(result.Item);
   }
 
   // 項目を取得できるのは100個まで
