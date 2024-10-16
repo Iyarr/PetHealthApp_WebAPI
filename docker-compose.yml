@@ -1,11 +1,11 @@
 services:
   dynamodb-local:
+    command: -jar DynamoDBLocal.jar -sharedDb -port 8000
     image: amazon/dynamodb-local:latest
-    hostname: dynamodb-local
-    working_dir: /home/dynamodblocal
-    command: "-jar DynamoDBLocal.jar -sharedDb -port 8000"
+    container_name: dynamodb-local
     ports:
       - "8000:8000"
+    working_dir: /home/dynamodblocal
 
   api:
     build: .
@@ -18,5 +18,7 @@ services:
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
 
     command: node --test
+    ports:
+      - "3000:3000"
     depends_on:
       - dynamodb-local
