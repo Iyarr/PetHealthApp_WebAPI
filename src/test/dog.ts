@@ -1,7 +1,9 @@
+import { CreateTableCommand, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogPutItem, DogPostItem } from "../type.js";
 import { dogModel } from "../models/dog.js";
+import { getEnv } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
 
 const testDogItem: DogPostItem = {
@@ -17,36 +19,96 @@ const PutDogItem: DogPutItem = {
   gender: "female",
 };
 
-test("Create dog", async () => {
-  const response = await dogModel.postItemCommand<DogPostItem>(testDogItem);
-  console.log(JSON.stringify(response));
+const UpdatedDogItem = {
+  id: "testId",
+  name: "testName",
+  size: "medium",
+  gender: "female",
+  hostId: "testDogId",
+};
+
+const TABLE_PREFIX = getEnv("TABLE_PREFIX");
+const describeTableCommand = new DescribeTableCommand({
+  TableName: `${TABLE_PREFIX}Dogs`,
 });
 
-test("Read dog", async () => {
-  const responseItem = await dogModel.getItemCommand({ id: testDogItem.id });
-  if (!responseItem) {
-    strict.fail("Item not found");
-  }
-  strict.deepStrictEqual(responseItem, testDogItem);
-  console.log(JSON.stringify(responseItem));
+const createTableCommand = new CreateTableCommand({
+  AttributeDefinitions: [
+    {
+      AttributeName: "id",
+      AttributeType: "S",
+    },
+    {
+      AttributeName: "hostId",
+      AttributeType: "S",
+    },
+  ],
+  KeySchema: [
+    {
+      AttributeName: "id",
+      KeyType: "HASH",
+    },
+  ],
+  GlobalSecondaryIndexes: [
+    {
+      IndexName: "hostIdIndex",
+      KeySchema: [
+        {
+          AttributeName: "hostId",
+          KeyType: "HASH",
+        },
+      ],
+      Projection: {
+        ProjectionType: "ALL",
+      },
+    },
+  ],
+  TableName: `${TABLE_PREFIX}Dogs`,
+  BillingMode: "PAY_PER_REQUEST",
 });
 
-test("Update dog", async () => {
-  const response = await dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
-  console.log(JSON.stringify(response));
+try {
+  console.log(await DBClient.send(describeTableCommand));
+} catch {
+  await DBClient.send(createTableCommand);
+}
+
+await test("Dog Test", async (t) => {
+  await t.test("Create dog", async () => {
+    await dogModel.postItemCommand<DogPostItem>(testDogItem);
+    strict.ok(true);
+  });
+
+  await t.test("Read dog", async () => {
+    const item = await dogModel.getItemCommand({ id: testDogItem.id });
+    strict.deepStrictEqual(item, testDogItem);
+    console.log(JSON.stringify(item));
+  });
+
+  await t.test("Update dog", async () => {
+    const item = await dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
+    strict.deepStrictEqual(item, UpdatedDogItem);
+    console.log(JSON.stringify(item));
+  });
+
+  await t.test("Read updated dog", async () => {
+    const item = await dogModel.getItemCommand({ id: testDogItem.id });
+    strict.deepStrictEqual(item, UpdatedDogItem);
+    console.log(JSON.stringify(item));
+  });
+
+  await t.test("Try to create equal id dog", async () => {
+    try {
+      await dogModel.postItemCommand<DogPostItem>(testDogItem);
+    } catch (e) {
+      strict.deepStrictEqual(e.message, "Failed to post item");
+    }
+  });
+
+  await t.test("Delete dog", async () => {
+    const item = await dogModel.deleteItemCommand({ id: testDogItem.id });
+    strict.ok(true);
+  });
 });
 
-test("Read updated dog", async () => {
-  const response = await dogModel.getItemCommand({ id: testDogItem.id });
-  if (!response) {
-    strict.fail("Item not found");
-  }
-  strict.deepStrictEqual(response, Object.assign(testDogItem, PutDogItem));
-  console.log(JSON.stringify(response));
-});
-
-test("Delete dog", async () => {
-  const response = await dogModel.deleteItemCommand({ id: testDogItem.id });
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response));
-});
+console.log(await DBClient.send(describeTableCommand));

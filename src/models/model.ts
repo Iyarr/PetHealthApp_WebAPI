@@ -20,14 +20,17 @@ export class Model {
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
+      ReturnValues: "ALL_OLD",
     });
 
     const result = await DBClient.send(command);
     if (result.$metadata.httpStatusCode !== 200) {
-      console.log(result);
+      console.error(item, result);
       throw new Error("Failed to post item");
     }
-    return this.formatItemFromCommand(result.Attributes);
+    if (result.Attributes) {
+      throw new Error("Changed existing item mistakenly");
+    }
   }
 
   // 項目を追加 or 削除できるのは25個まで
@@ -47,7 +50,7 @@ export class Model {
 
     const result = await DBClient.send(command);
     if (result.$metadata.httpStatusCode !== 200) {
-      console.log(result);
+      console.log(items, result);
       throw new Error("Failed to post item");
     }
     return result.UnprocessedItems;
@@ -61,7 +64,7 @@ export class Model {
 
     const result = await DBClient.send(command);
     if (result.$metadata.httpStatusCode !== 200) {
-      console.log(result);
+      console.log(pk, result);
       throw new Error("Failed to get response");
     }
     return this.formatItemFromCommand(result.Item);
@@ -83,7 +86,7 @@ export class Model {
 
     const result = await DBClient.send(command);
     if (result.$metadata.httpStatusCode !== 200) {
-      console.log(result);
+      console.log(pks, result);
       throw new Error("Failed to get response");
     }
     return result.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
@@ -92,7 +95,7 @@ export class Model {
   async updateItemCommand(pk: object, item: object) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
-    var expressionAttributeValues: Record<string, AttributeValue> = {};
+    const expressionAttributeValues: Record<string, AttributeValue> = {};
     for (const [key, value] of Object.entries(item)) {
       updateItems.push(`#${key} = :${key}`);
       expressionAttributeNames[`#${key}`] = key;
@@ -104,11 +107,12 @@ export class Model {
       UpdateExpression: `set ${updateItems.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: "ALL_NEW",
     });
 
     const result = await DBClient.send(command);
     if (result.$metadata.httpStatusCode !== 200) {
-      console.log(result);
+      console.log(pk, item, result);
       throw new Error("Failed to get response");
     }
     return this.formatItemFromCommand(result.Attributes);
@@ -118,14 +122,15 @@ export class Model {
     const command = new DeleteItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
+      ReturnValues: "ALL_OLD",
     });
 
     const result = await DBClient.send(command);
     if (result.$metadata.httpStatusCode !== 200) {
-      console.log(result);
+      console.log(pk, result);
       throw new Error("Failed to post item");
     }
-    return result;
+    return this.formatItemFromCommand(result.Attributes);
   }
 
   // オブジェクトをDynamoDBのCommandでの形式に変換
