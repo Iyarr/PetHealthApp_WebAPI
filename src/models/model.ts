@@ -20,7 +20,6 @@ export class Model {
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
-      ConditionExpression: "attribute_not_exists()",
       ReturnValues: "ALL_OLD",
     });
 

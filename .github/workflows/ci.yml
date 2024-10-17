@@ -10,15 +10,16 @@ jobs:
     environment: development
 
     env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      TABLE_PREFIX: ${{ secrets.TABLE_PREFIX }}
+      DYNAMODB_ENDPOINT: http://localhost:8000
+      TABLE_PREFIX: Test_
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Docker Compose
-        run: |
-          docker compose up -d
+      - name: Run Test Script
+        run: ./test.sh
