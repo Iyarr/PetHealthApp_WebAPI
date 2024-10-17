@@ -22,4 +22,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Test Script
-        run: ./test.sh
+        run: |
+          chmod +x test.sh
+          ./test.sh
