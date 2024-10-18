@@ -1,9 +1,9 @@
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
 import { tokenAuth } from "./middle/auth.js";
-import { getEnv } from "./utils/env.js";
+import { env } from "./utils/env.js";
 
-const PORT = getEnv("PORT");
+const PORT = env.PORT;
 const app = express();
 
 app.use(express.json());

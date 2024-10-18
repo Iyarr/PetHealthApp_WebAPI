@@ -3,11 +3,11 @@ import { strict } from "node:assert";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getValidUidFromToken } from "../middle/firebase.js";
-import { getEnv } from "../utils/env.js";
+import { env } from "../utils/env.js";
 
 const app = initializeApp({
-  apiKey: getEnv("FIREBASE_API_KEY"),
-  projectId: getEnv("FIREBASE_PROJECT_ID"),
+  apiKey: env.FIREBASE_API_KEY,
+  projectId: env.FIREBASE_PROJECT_ID,
 });
 
 // 一時的なアカウント作成用のランダム文字列を生成

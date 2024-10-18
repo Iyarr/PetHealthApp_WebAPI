@@ -2,7 +2,7 @@ import { CreateTableCommand, DescribeTableCommand } from "@aws-sdk/client-dynamo
 import { test } from "node:test";
 import { strict } from "node:assert";
 import { userModel } from "../models/user.js";
-import { getEnv } from "../utils/env.js";
+import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { UserPutItem, UserPostItem } from "../type.js";
 
@@ -24,7 +24,7 @@ const UpdatedUserItem = {
   email: "updated@email",
 };
 
-const TABLE_PREFIX = getEnv("TABLE_PREFIX");
+const TABLE_PREFIX = env.TABLE_PREFIX;
 const describeTableCommand = new DescribeTableCommand({
   TableName: `${TABLE_PREFIX}Users`,
 });

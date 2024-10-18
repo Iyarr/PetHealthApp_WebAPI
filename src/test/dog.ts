@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogPutItem, DogPostItem } from "../type.js";
 import { dogModel } from "../models/dog.js";
-import { getEnv } from "../utils/env.js";
+import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
 
 const testDogItem: DogPostItem = {
@@ -27,7 +27,7 @@ const UpdatedDogItem = {
   hostId: "testDogId",
 };
 
-const TABLE_PREFIX = getEnv("TABLE_PREFIX");
+const TABLE_PREFIX = env.TABLE_PREFIX;
 const describeTableCommand = new DescribeTableCommand({
   TableName: `${TABLE_PREFIX}Dogs`,
 });
