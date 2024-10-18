@@ -7,13 +7,13 @@ import {
   UpdateItemCommand,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
-import { getEnv } from "../utils/env.js";
+import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
 
 export class Model {
   tableName: string;
   constructor(tableName: string) {
-    this.tableName = getEnv("TABLE_PREFIX") + tableName;
+    this.tableName = env.TABLE_PREFIX + tableName;
   }
 
   async postItemCommand<T extends object>(item: T) {
