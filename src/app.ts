@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { userRouter } from "./routes/user.js";
+import { dogRouter } from "./routes/dog.js";
 import { tokenAuth } from "./middle/auth.js";
 import { getEnv } from "./utils/env.js";
 
@@ -9,6 +10,7 @@ const app = express();
 app.use(express.json());
 
 app.use("/user", userRouter);
+app.use("/dog", dogRouter);
 app.use(tokenAuth);
 
 app.get("/", (req: Request, res: Response) => {
