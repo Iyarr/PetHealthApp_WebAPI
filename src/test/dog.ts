@@ -68,7 +68,8 @@ const createTableCommand = new CreateTableCommand({
 });
 
 try {
-  console.log(await DBClient.send(describeTableCommand));
+  const dogTableData = await DBClient.send(describeTableCommand);
+  console.log(JSON.stringify(dogTableData, null, 2));
 } catch {
   await DBClient.send(createTableCommand);
 }
@@ -82,33 +83,35 @@ await test("Dog Test", async (t) => {
   await t.test("Read dog", async () => {
     const item = await dogModel.getItemCommand({ id: testDogItem.id });
     strict.deepStrictEqual(item, testDogItem);
-    console.log(JSON.stringify(item));
+    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Update dog", async () => {
     const item = await dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
     strict.deepStrictEqual(item, UpdatedDogItem);
-    console.log(JSON.stringify(item));
+    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Read updated dog", async () => {
     const item = await dogModel.getItemCommand({ id: testDogItem.id });
     strict.deepStrictEqual(item, UpdatedDogItem);
-    console.log(JSON.stringify(item));
+    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Try to create equal id dog", async () => {
     try {
       await dogModel.postItemCommand<DogPostItem>(testDogItem);
     } catch (e) {
-      strict.deepStrictEqual(e.message, "Failed to post item");
+      strict.deepStrictEqual(e.message, "Item already exists");
     }
   });
 
   await t.test("Delete dog", async () => {
-    const item = await dogModel.deleteItemCommand({ id: testDogItem.id });
+    const old_item = await dogModel.deleteItemCommand({ id: testDogItem.id });
+    console.log(JSON.stringify(old_item, null, 2));
     strict.ok(true);
   });
 });
 
-console.log(await DBClient.send(describeTableCommand));
+const dogTableData = await DBClient.send(describeTableCommand);
+console.log(JSON.stringify(dogTableData, null, 2));
