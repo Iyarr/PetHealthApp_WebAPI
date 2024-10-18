@@ -17,19 +17,36 @@ export class Model {
   }
 
   async postItemCommand<T extends object>(item: T) {
+    // 重複チェックのための条件式を作成
+    const expressionAttributeNames: Record<string, string> = {};
+    const conditionExpression = Object.keys(item)
+      .map((key) => {
+        expressionAttributeNames[`#${key}`] = key;
+        return `attribute_not_exists(#${key})`;
+      })
+      .join(" AND ");
+
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
       ReturnValues: "ALL_OLD",
     });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.error(item, result);
-      throw new Error("Failed to post item");
-    }
-    if (result.Attributes) {
-      throw new Error("Changed existing item mistakenly");
+    try {
+      const result = await DBClient.send(command);
+      if (result.$metadata.httpStatusCode !== 200) {
+        console.error(item, result);
+        throw new Error("Failed to post item");
+      } else if (result.Attributes !== undefined) {
+        throw new Error("Existing item updated mistakenly");
+      }
+    } catch (error) {
+      if (error.message === "The conditional request failed") {
+        throw new Error("Item already exists");
+      }
+      throw new Error(error.message);
     }
   }
 

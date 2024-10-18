@@ -47,7 +47,8 @@ const createTableCommand = new CreateTableCommand({
 });
 
 try {
-  console.log(await DBClient.send(describeTableCommand));
+  const userTableData = await DBClient.send(describeTableCommand);
+  console.log(JSON.stringify(userTableData, null, 2));
 } catch {
   await DBClient.send(createTableCommand);
 }
@@ -61,6 +62,7 @@ await test("User Test", async (t) => {
   await t.test("Read user", async () => {
     const item = await userModel.getItemCommand({ uid: testUserItem.uid });
     strict.deepStrictEqual(item, testUserItem);
+    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Update user", async () => {
@@ -71,20 +73,23 @@ await test("User Test", async (t) => {
   await t.test("Read updated user", async () => {
     const item = await userModel.getItemCommand({ uid: testUserItem.uid });
     strict.deepStrictEqual(item, UpdatedUserItem);
+    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Try to create equal uid user", async () => {
     try {
       await userModel.postItemCommand<UserPostItem>(testUserItem);
     } catch (e) {
-      strict.deepStrictEqual(e.message, "Failed to post item");
+      strict.deepStrictEqual(e.message, "Item already exists");
     }
   });
 
   await t.test("Delete user", async () => {
     const old_item = await userModel.deleteItemCommand({ uid: testUserItem.uid });
+    console.log(JSON.stringify(old_item, null, 2));
     strict.ok(true);
   });
 });
 
-console.log(await DBClient.send(describeTableCommand));
+const userTableData = await DBClient.send(describeTableCommand);
+console.log(JSON.stringify(userTableData, null, 2));
