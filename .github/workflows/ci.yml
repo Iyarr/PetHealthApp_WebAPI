@@ -22,4 +22,4 @@ jobs:
       - name: Run Test Script
         run: |
           chmod +x test.sh
-          ./test.sh
+          ./test.sh develop

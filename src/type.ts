@@ -6,6 +6,7 @@ export type UserPostItem = {
 };
 
 export type UserPutItem = {
+  id?: string;
   name?: string;
   email?: string;
 };

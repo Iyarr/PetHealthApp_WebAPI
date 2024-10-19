@@ -109,7 +109,7 @@ export class Model {
     return result.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
   }
 
-  async updateItemCommand(pk: object, item: object) {
+  async updateItemCommand<pkT extends object, itemT extends object>(pk: pkT, item: itemT) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, AttributeValue> = {};

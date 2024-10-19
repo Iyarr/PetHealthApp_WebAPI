@@ -13,7 +13,7 @@ export const tokenAuth = async (req: Request, res: Response, next: NextFunction)
   const uid = await getValidUidFromToken(token.split(" ")[1]);
 
   if (uid !== "") {
-    req.body.uid = uid;
+    res.locals.uid = uid;
     next();
   } else {
     return res.status(401).send("Invalid Token");
