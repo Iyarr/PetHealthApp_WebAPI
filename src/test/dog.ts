@@ -1,7 +1,7 @@
 import { CreateTableCommand, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { test } from "node:test";
 import { strict } from "node:assert";
-import { DogPutItem, DogPostItem } from "../type.js";
+import { DogUpdateItem, DogPostItem } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
@@ -14,7 +14,7 @@ const testDogItem: DogPostItem = {
   hostId: "testDogId",
 };
 
-const PutDogItem: DogPutItem = {
+const PutDogItem: DogUpdateItem = {
   size: "medium",
   gender: "female",
 };

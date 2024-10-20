@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { DogPostItem, DogPutItem } from "../type.js";
+import { DogPostItem } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 
 export const dogController = {

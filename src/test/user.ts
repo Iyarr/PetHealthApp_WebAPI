@@ -4,7 +4,7 @@ import { strict } from "node:assert";
 import { userModel } from "../models/user.js";
 import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
-import { UserPutItem, UserPostItem } from "../type.js";
+import { UserUpdateItem, UserPostItem } from "../types/user.js";
 
 const testUserItem: UserPostItem = {
   uid: "firebaseUid",
@@ -13,7 +13,7 @@ const testUserItem: UserPostItem = {
   email: "test@email",
 };
 
-const PutUserItem: UserPutItem = {
+const PutUserItem: UserUpdateItem = {
   email: "updated@email",
 };
 
