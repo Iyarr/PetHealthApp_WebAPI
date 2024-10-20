@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { UserPostItem, UserPutItem } from "../type.js";
+import { UserPostItem } from "../types/user.js";
 import { userModel } from "../models/user.js";
 
 export const userController = {
