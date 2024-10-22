@@ -38,12 +38,11 @@ class DogModel extends Model {
     try {
       const result = await DBClient.send(command);
       if (result.$metadata.httpStatusCode !== 200) {
-        console.log(id, item, result);
         throw new Error("Failed to update item");
       }
     } catch (e) {
       console.error(id, item, e);
-      throw new Error(e.message);
+      throw new Error("Failed to update item");
     }
   }
 
