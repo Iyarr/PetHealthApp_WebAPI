@@ -35,12 +35,16 @@ class DogModel extends Model {
       ReturnValues: "ALL_NEW",
     });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(id, item, result);
-      throw new Error("Failed to update item");
+    try {
+      const result = await DBClient.send(command);
+      if (result.$metadata.httpStatusCode !== 200) {
+        console.log(id, item, result);
+        throw new Error("Failed to update item");
+      }
+    } catch (e) {
+      console.error(id, item, e);
+      throw new Error(e.message);
     }
-    return this.formatItemFromCommand(result.Attributes);
   }
 
   async batchGetMyDogs(id: string) {
