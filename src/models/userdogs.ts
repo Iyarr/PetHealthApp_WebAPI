@@ -2,9 +2,9 @@ import { QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 
-class AllowUserModel extends Model {
+class UserDogs extends Model {
   constructor() {
-    super("AllowUsers");
+    super("UserDogs");
   }
 
   async batchGetDogsFromId(id: string) {
@@ -22,4 +22,4 @@ class AllowUserModel extends Model {
   }
 }
 
-export const allowUserModel = new AllowUserModel();
+export const allowUserModel = new UserDogs();

@@ -26,6 +26,3 @@ elif [ "$1" == "master" ]; then
   npm install --omit=dev
   nohup npm start &
 fi
-
-exit 0
-
