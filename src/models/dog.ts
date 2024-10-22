@@ -40,6 +40,8 @@ class DogModel extends Model {
       if (result.$metadata.httpStatusCode !== 200) {
         throw new Error("Failed to update item");
       }
+
+      return this.formatItemFromCommand(result.Attributes);
     } catch (e) {
       console.error(id, item, e);
       throw new Error("Failed to update item");
