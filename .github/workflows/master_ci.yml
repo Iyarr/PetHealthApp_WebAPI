@@ -30,9 +30,6 @@ jobs:
           npm install
           npm run build
           chmod +x test.sh
-          # Run DynamoDB Local
-          docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
-            -jar DynamoDBLocal.jar -inMemory -port $DYNAMODB_PORT
 
       - name: Run API Test
         run: |
