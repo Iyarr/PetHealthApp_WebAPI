@@ -1,10 +1,8 @@
-import { CreateTableCommand, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogUpdateItem, DogPostItem } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
-import { env } from "../utils/env.js";
-import { DBClient } from "../utils/dynamodb.js";
+import { createDogTable } from "./setup.js";
 
 const testDogItem: DogPostItem = {
   id: "testId",
@@ -27,52 +25,7 @@ const UpdatedDogItem = {
   hostId: "testDogId",
 };
 
-const TABLE_PREFIX = env.TABLE_PREFIX;
-const describeTableCommand = new DescribeTableCommand({
-  TableName: `${TABLE_PREFIX}Dogs`,
-});
-
-const createTableCommand = new CreateTableCommand({
-  AttributeDefinitions: [
-    {
-      AttributeName: "id",
-      AttributeType: "S",
-    },
-    {
-      AttributeName: "hostId",
-      AttributeType: "S",
-    },
-  ],
-  KeySchema: [
-    {
-      AttributeName: "id",
-      KeyType: "HASH",
-    },
-  ],
-  GlobalSecondaryIndexes: [
-    {
-      IndexName: "hostIdIndex",
-      KeySchema: [
-        {
-          AttributeName: "hostId",
-          KeyType: "HASH",
-        },
-      ],
-      Projection: {
-        ProjectionType: "ALL",
-      },
-    },
-  ],
-  TableName: `${TABLE_PREFIX}Dogs`,
-  BillingMode: "PAY_PER_REQUEST",
-});
-
-try {
-  const dogTableData = await DBClient.send(describeTableCommand);
-  console.log(JSON.stringify(dogTableData, null, 2));
-} catch {
-  await DBClient.send(createTableCommand);
-}
+await createDogTable();
 
 await test("Dog Test", async (t) => {
   await t.test("Create dog", async () => {
@@ -120,6 +73,3 @@ await test("Dog Test", async (t) => {
     strict.ok(true);
   });
 });
-
-const dogTableData = await DBClient.send(describeTableCommand);
-console.log(JSON.stringify(dogTableData, null, 2));
