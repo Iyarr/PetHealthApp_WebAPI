@@ -33,7 +33,7 @@ jobs:
 
       - name: Run API Test
         run: |
-          source test.sh
+          source ./test.sh
           npm start &
           bg_pid=$!
           sleep 10
