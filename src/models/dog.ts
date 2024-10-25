@@ -43,7 +43,6 @@ class DogModel extends Model {
 
       return this.formatItemFromCommand(result.Attributes);
     } catch (e) {
-      console.error(id, item, e);
       throw new Error("Failed to update item");
     }
   }

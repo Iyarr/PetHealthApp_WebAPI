@@ -1,10 +1,8 @@
-import { CreateTableCommand, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { test } from "node:test";
 import { strict } from "node:assert";
 import { userModel } from "../models/user.js";
-import { env } from "../utils/env.js";
-import { DBClient } from "../utils/dynamodb.js";
 import { UserUpdateItem, UserPostItem } from "../types/user.js";
+import { createUserTable } from "./setup.js";
 
 const testUserItem: UserPostItem = {
   uid: "firebaseUid",
@@ -24,34 +22,7 @@ const UpdatedUserItem = {
   email: "updated@email",
 };
 
-const TABLE_PREFIX = env.TABLE_PREFIX;
-const describeTableCommand = new DescribeTableCommand({
-  TableName: `${TABLE_PREFIX}Users`,
-});
-
-const createTableCommand = new CreateTableCommand({
-  AttributeDefinitions: [
-    {
-      AttributeName: "uid",
-      AttributeType: "S",
-    },
-  ],
-  KeySchema: [
-    {
-      AttributeName: "uid",
-      KeyType: "HASH",
-    },
-  ],
-  TableName: `${TABLE_PREFIX}Users`,
-  BillingMode: "PAY_PER_REQUEST",
-});
-
-try {
-  const userTableData = await DBClient.send(describeTableCommand);
-  console.log(JSON.stringify(userTableData, null, 2));
-} catch {
-  await DBClient.send(createTableCommand);
-}
+await createUserTable();
 
 await test("User Test", async (t) => {
   await t.test("Create user", async () => {
@@ -90,6 +61,3 @@ await test("User Test", async (t) => {
     strict.ok(true);
   });
 });
-
-const userTableData = await DBClient.send(describeTableCommand);
-console.log(JSON.stringify(userTableData, null, 2));

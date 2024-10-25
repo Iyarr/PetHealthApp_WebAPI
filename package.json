@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "find src -name '*.ts' | xargs npx esbuild --format=esm --platform=node --outdir=dist",
-    "test": "rm -rf dist && npm i && npm run build && node --test"
+    "build": "rm -rf dist && find src -name '*.ts' | xargs npx esbuild --format=esm --platform=node --outdir=dist",
+    "test": "npm i && npm run build && node --test"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +20,7 @@
     "@aws-sdk/client-dynamodb": "^3.602.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-validator": "^7.2.0",
     "firebase-admin": "^12.4.0"
   }
 }

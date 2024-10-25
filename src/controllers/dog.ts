@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { json, Request, Response } from "express";
 import { DogPostItem } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 
@@ -16,7 +16,7 @@ export const dogController = {
   async read(req: Request, res: Response) {
     try {
       const dog = await dogModel.getItemCommand({ id: req.params.id });
-      res.status(200).json(dog);
+      res.status(200).json({ dog });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
     }
@@ -25,9 +25,14 @@ export const dogController = {
   async update(req: Request, res: Response) {
     const dog: DogPostItem = Object.assign({ hostId: res.locals.uid }, req.body);
     try {
-      await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
-      res.status(200).json({ message: "Dog updated" });
+      const result = await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
+      if (!result) {
+        throw new Error("Dog not found");
+      } else {
+        res.status(200).json({ message: "Dog updated" });
+      }
     } catch (e) {
+      //console.log(JSON.stringify(dog, null, 2));
       res.status(400).json({ message: e.message });
     }
   },

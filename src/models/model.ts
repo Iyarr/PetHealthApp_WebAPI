@@ -34,10 +34,7 @@ export class Model {
 
     try {
       const result = await DBClient.send(command);
-      if (result.$metadata.httpStatusCode !== 200) {
-        console.error(item, result);
-        throw new Error("Failed to post item");
-      } else if (result.Attributes !== undefined) {
+      if (result.Attributes !== undefined) {
         throw new Error("Existing item updated mistakenly");
       }
     } catch (error) {
@@ -77,12 +74,13 @@ export class Model {
       Key: this.formatItemForCommand(pk),
     });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(pk, result);
+    try {
+      const result = await DBClient.send(command);
+      return this.formatItemFromCommand(result.Item);
+    } catch (error) {
+      console.log(pk, error);
       throw new Error("Failed to get response");
     }
-    return this.formatItemFromCommand(result.Item);
   }
 
   // 項目を取得できるのは100個まで

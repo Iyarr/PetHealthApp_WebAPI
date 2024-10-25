@@ -9,9 +9,9 @@ const app = express();
 
 app.use(express.json());
 
+app.use(tokenAuth);
 app.use("/user", userRouter);
 app.use("/dog", dogRouter);
-app.use(tokenAuth);
 
 app.get("/", (req: Request, res: Response) => {
   const body = req.body;
