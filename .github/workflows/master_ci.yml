@@ -40,10 +40,12 @@ jobs:
           echo "DYNAMODB_ENDPOINT=$DYNAMODB_ENDPOINT" >> $GITHUB_ENV
           echo "ON_DEVELOPMENT=$ON_DEVELOPMENT" >> $GITHUB_ENV
 
+      - name: Start the application
+        run: |
+          npm start &
+
       - name: Run API Test
         run: |
-          nohup npm start &
-          bg_pid=$!
           sleep 10
           id=$(openssl rand -base64 24)
           name=$(openssl rand -hex 24)
@@ -93,5 +95,3 @@ jobs:
           curl -X POST "https://identitytoolkit.googleapis.com/v1/accounts:delete?key=$FIREBASE_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{\"idToken\":\"$(echo $token | jq -r '.idToken')\"}"
-
-          kill $bg_pid
