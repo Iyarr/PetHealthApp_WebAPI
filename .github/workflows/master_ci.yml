@@ -24,10 +24,11 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: Install
+      - name: Install and Build
         run: |
           sudo apt install -y jq
           npm install
+          npm run build
 
       - name: Set up API Server
         run: |
