@@ -26,7 +26,7 @@ jobs:
 
       - name: Install
         run: |
-          apt install -y jq
+          sudo apt install -y jq
           npm install
 
       - name: Set up API Server
