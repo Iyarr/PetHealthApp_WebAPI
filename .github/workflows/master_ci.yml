@@ -2,7 +2,8 @@ name: API Test For Master Branch
 
 on:
   pull_request:
-    branches: ["master"]
+    # 修正中なのでdevelopでも実行する
+    branches: ["master", "develop"]
 
 jobs:
   build:
@@ -26,19 +27,18 @@ jobs:
 
       - name: Set Up Environment Variables
         run: |
-          sudo apt install -y jq
           npm install
           npm run build
           chmod +x test.sh
           source ./test.sh
-          echo "$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
-          echo "$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
-          echo "$AWS_REGION" >> $GITHUB_ENV
-          echo "$TABLE_PREFIX" >> $GITHUB_ENV
-          echo "$PORT" >> $GITHUB_ENV
-          echo "$DYNAMODB_PORT" >> $GITHUB_ENV
-          echo "$DYNAMODB_ENDPOINT" >> $GITHUB_ENV
-          echo "$ON_DEVELOPMENT" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+          echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
+          echo "TABLE_PREFIX=$TABLE_PREFIX" >> $GITHUB_ENV
+          echo "PORT=$PORT" >> $GITHUB_ENV
+          echo "DYNAMODB_PORT=$DYNAMODB_PORT" >> $GITHUB_ENV
+          echo "DYNAMODB_ENDPOINT=$DYNAMODB_ENDPOINT" >> $GITHUB_ENV
+          echo "ON_DEVELOPMENT=$ON_DEVELOPMENT" >> $GITHUB_ENV
 
       - name: Run API Test
         run: |
