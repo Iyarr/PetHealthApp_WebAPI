@@ -24,16 +24,24 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: Set Up Test
+      - name: Set Up Environment Variables
         run: |
           sudo apt install -y jq
           npm install
           npm run build
           chmod +x test.sh
+          source ./test.sh
+          echo "$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+          echo "$AWS_REGION" >> $GITHUB_ENV
+          echo "$TABLE_PREFIX" >> $GITHUB_ENV
+          echo "$PORT" >> $GITHUB_ENV
+          echo "$DYNAMODB_PORT" >> $GITHUB_ENV
+          echo "$DYNAMODB_ENDPOINT" >> $GITHUB_ENV
+          echo "$ON_DEVELOPMENT" >> $GITHUB_ENV
 
       - name: Run API Test
         run: |
-          source ./test.sh
           npm start &
           bg_pid=$!
           sleep 10
