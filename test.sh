@@ -20,6 +20,7 @@ if [ "$1" == "unit" ]; then
 elif [ "$1" == "api" ]; then
   npm start &
   bg_pid=$!
+  sleep 10
   id=$(openssl rand -base64 24)
   name=$(openssl rand -hex 24)
   email="$(openssl rand -hex 24)@example.com"

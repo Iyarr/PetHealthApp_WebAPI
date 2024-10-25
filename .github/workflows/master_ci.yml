@@ -30,7 +30,7 @@ jobs:
           npm install
           npm run build
 
-      - name: Set up API Server
+      - name: Run API Test
         run: |
           chmod +x test.sh
           ./test.sh api
