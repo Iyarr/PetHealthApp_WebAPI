@@ -42,7 +42,7 @@ jobs:
 
       - name: Run API Test
         run: |
-          npm start &
+          nohup npm start &
           bg_pid=$!
           sleep 10
           id=$(openssl rand -base64 24)
