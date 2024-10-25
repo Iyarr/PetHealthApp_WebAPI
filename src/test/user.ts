@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
 import { userModel } from "../models/user.js";
-import { UserPutItem, UserPostItem } from "../type.js";
+import { UserUpdateItem, UserPostItem } from "../types/user.js";
+import { createUserTable } from "./setup.js";
 
 const testUserItem: UserPostItem = {
   uid: "firebaseUid",
@@ -10,45 +11,53 @@ const testUserItem: UserPostItem = {
   email: "test@email",
 };
 
-const PutUserItem: UserPutItem = {
+const PutUserItem: UserUpdateItem = {
   email: "updated@email",
 };
-/*
-test("Read user", async () => {
-  const response = await userModel.getItemCommand({ id: testUserItem.id });
-  if (!response.Item) {
-    strict.fail("Item not found");
-  }
-  strict.deepStrictEqual(userModel.formatItemFromCommand(response.Item), testUserItem);
-  console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
-});
 
-test("Update user", async () => {
-  const response = await userModel.updateItemCommand({ id: testUserItem.id }, PutUserItem);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-});
+const UpdatedUserItem = {
+  uid: "firebaseUid",
+  id: "testId",
+  name: "testName",
+  email: "updated@email",
+};
 
-test("Read updated user", async () => {
-  const response = userModel.getItemCommand({ id: testUserItem.id });
-  if (!response.Item) {
-    strict.fail("Item not found");
-  }
-  strict.deepStrictEqual(
-    userModel.formatItemFromCommand(response.Item),
-    Object.assign({}, testUserItem, PutUserItem)
-  );
-  console.log(JSON.stringify(userModel.formatItemFromCommand(response.Item)));
-});
+await createUserTable();
 
-test("Delete user", async () => {
-  const response = userModel.deleteItemCommand({ id: testUserItem.id });
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-});
+await test("User Test", async (t) => {
+  await t.test("Create user", async () => {
+    await userModel.postItemCommand<UserPostItem>(testUserItem);
+    strict.ok(true);
+  });
 
-test("Create user", async () => {
-  const response = userModel.postItemCommand<UserPostItem>(testUserItem);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-}); */
+  await t.test("Read user", async () => {
+    const item = await userModel.getItemCommand({ uid: testUserItem.uid });
+    strict.deepStrictEqual(item, testUserItem);
+    console.log(JSON.stringify(item, null, 2));
+  });
+
+  await t.test("Update user", async () => {
+    const new_item = await userModel.updateItemCommand({ uid: testUserItem.uid }, PutUserItem);
+    strict.deepStrictEqual(new_item, UpdatedUserItem);
+  });
+
+  await t.test("Read updated user", async () => {
+    const item = await userModel.getItemCommand({ uid: testUserItem.uid });
+    strict.deepStrictEqual(item, UpdatedUserItem);
+    console.log(JSON.stringify(item, null, 2));
+  });
+
+  await t.test("Try to create equal uid user", async () => {
+    try {
+      await userModel.postItemCommand<UserPostItem>(testUserItem);
+    } catch (e) {
+      strict.deepStrictEqual(e.message, "Item already exists");
+    }
+  });
+
+  await t.test("Delete user", async () => {
+    const old_item = await userModel.deleteItemCommand({ uid: testUserItem.uid });
+    console.log(JSON.stringify(old_item, null, 2));
+    strict.ok(true);
+  });
+});

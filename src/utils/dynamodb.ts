@@ -1,12 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { getEnv } from "./env.js";
+import { env } from "./env.js";
 
-export const DBClient = process.env.onDevelop
+export const DBClient = process.env.ON_DEVELOPMENT
   ? new DynamoDBClient({
-      region: getEnv("AWS_REGION"),
+      endpoint: env.DYNAMODB_ENDPOINT,
+      region: "us-west-2",
       credentials: {
-        accessKeyId: getEnv("AWS_ACCESS_KEY_ID"),
-        secretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY"),
+        accessKeyId: "dummyAccessKeyId",
+        secretAccessKey: "dummySecretAccessKey",
       },
     })
   : new DynamoDBClient();

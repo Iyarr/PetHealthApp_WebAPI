@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
-import { DogPutItem, DogPostItem } from "../type.js";
+import { DogUpdateItem, DogPostItem } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
-import { DBClient } from "../utils/dynamodb.js";
+import { createDogTable } from "./setup.js";
 
 const testDogItem: DogPostItem = {
   id: "testId",
@@ -12,52 +12,64 @@ const testDogItem: DogPostItem = {
   hostId: "testDogId",
 };
 
-const PutDogItem: DogPutItem = {
+const PutDogItem: DogUpdateItem = {
   size: "medium",
   gender: "female",
 };
 
-/*
-test("Create dog", async () => {
-  const command = dogModel.postItemCommand<DogPostItem>(testDogItem);
-  const response = await DBClient.send(command);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-});
+const UpdatedDogItem = {
+  id: "testId",
+  name: "testName",
+  size: "medium",
+  gender: "female",
+  hostId: "testDogId",
+};
 
-test("Read dog", async () => {
-  const command = dogModel.getItemCommand({ id: testDogItem.id });
-  const response = await DBClient.send(command);
-  if (!response.Item) {
-    strict.fail("Item not found");
-  }
-  strict.deepStrictEqual(dogModel.formatItemFromCommand(response.Item), testDogItem);
-  console.log(JSON.stringify(dogModel.formatItemFromCommand(response.Item)));
-});
+await createDogTable();
 
-test("Update dog", async () => {
-  const command = dogModel.updateItemCommand({ id: testDogItem.id }, PutDogItem);
-  const response = await DBClient.send(command);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-});
+await test("Dog Test", async (t) => {
+  await t.test("Create dog", async () => {
+    await dogModel.postItemCommand<DogPostItem>(testDogItem);
+    strict.ok(true);
+  });
 
-test("Read updated dog", async () => {
-  const command = dogModel.getItemCommand({ id: testDogItem.id });
-  const response = await DBClient.send(command);
-  if (!response.Item) {
-    strict.fail("Item not found");
-  }
-  strict.deepStrictEqual(
-    dogModel.formatItemFromCommand(response.Item),
-    Object.assign(testDogItem, PutDogItem)
-  );
-  console.log(JSON.stringify(dogModel.formatItemFromCommand(response.Item)));
-});
+  await t.test("Read dog", async () => {
+    const item = await dogModel.getItemCommand({ id: testDogItem.id });
+    strict.deepStrictEqual(item, testDogItem);
+    console.log(JSON.stringify(item, null, 2));
+  });
 
-test("Delete dog", async () => {
-  const command = dogModel.deleteItemCommand({ id: testDogItem.id });
-  const response = await DBClient.send(command);
-  strict.strictEqual(response.$metadata.httpStatusCode, 200);
-  console.log(JSON.stringify(response.$metadata));
-}); */
+  await t.test("Update dog", async () => {
+    const item = await dogModel.updateItemCommand(testDogItem.id, PutDogItem, testDogItem.hostId);
+    strict.deepStrictEqual(item, UpdatedDogItem);
+    console.log(JSON.stringify(item, null, 2));
+  });
+
+  await t.test("Read updated dog", async () => {
+    const item = await dogModel.getItemCommand({ id: testDogItem.id });
+    strict.deepStrictEqual(item, UpdatedDogItem);
+    console.log(JSON.stringify(item, null, 2));
+  });
+
+  await t.test("Update dog with wrong hostId", async () => {
+    try {
+      await dogModel.updateItemCommand(testDogItem.id, PutDogItem, "wrongHostId");
+    } catch (e) {
+      strict.deepStrictEqual(e.message, "Failed to update item");
+    }
+  });
+
+  await t.test("Try to create equal id dog", async () => {
+    try {
+      await dogModel.postItemCommand<DogPostItem>(testDogItem);
+    } catch (e) {
+      strict.deepStrictEqual(e.message, "Item already exists");
+    }
+  });
+
+  await t.test("Delete dog", async () => {
+    const old_item = await dogModel.deleteItemCommand(testDogItem.id, testDogItem.hostId);
+    console.log(JSON.stringify(old_item, null, 2));
+    strict.ok(true);
+  });
+});

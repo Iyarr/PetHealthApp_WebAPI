@@ -1,0 +1,97 @@
+name: API Test For Master Branch
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: development
+
+    env:
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Set Up Environment Variables
+        run: |
+          sudo apt install -y jq
+          npm install
+          npm run build
+          chmod +x test.sh
+          source ./test.sh
+          echo "$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+          echo "$AWS_REGION" >> $GITHUB_ENV
+          echo "$TABLE_PREFIX" >> $GITHUB_ENV
+          echo "$PORT" >> $GITHUB_ENV
+          echo "$DYNAMODB_PORT" >> $GITHUB_ENV
+          echo "$DYNAMODB_ENDPOINT" >> $GITHUB_ENV
+          echo "$ON_DEVELOPMENT" >> $GITHUB_ENV
+
+      - name: Run API Test
+        run: |
+          npm start &
+          bg_pid=$!
+          sleep 10
+          id=$(openssl rand -base64 24)
+          name=$(openssl rand -hex 24)
+          email="$(openssl rand -hex 24)@example.com"
+          updatedEmail=$(openssl rand -hex 24)
+          password=$(openssl rand -hex 24)
+          dogId=$(openssl rand -base64 24)
+          dogName=$(openssl rand -hex 24)
+          token=$(
+            curl -X POST https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$FIREBASE_API_KEY \
+              -H "Content-Type: application/json" \
+              -d "{\"email\":\"$email\",\"password\":\"$password\",\"returnSecureToken\":true}"
+            )
+
+          curl -X POST http://localhost:$PORT/user \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')" \
+            -d "{\"id\":\"$id\",\"name\":\"$name\",\"email\":\"$email\"}"
+
+          curl -X PUT http://localhost:$PORT/user \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')" \
+            -d "{\"email\":\"$updatedEmail\"}"
+
+          curl http://localhost:$PORT/user \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')"
+
+          curl -X POST http://localhost:$PORT/dog \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')" \
+            -d "{\"id\":\"$dogId\",\"name\":\"$dogName\",\"gender\":\"female\",\"size\":\"big\",\"hostId\":\"$(echo $token | jq -r '.localId')\"}"
+
+          curl http://localhost:$PORT/dog/$dogId \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')"
+
+          curl -X PUT http://localhost:$PORT/dog/$dogId \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')" \
+            -d "{\"gender\":\"male\",\"size\":\"small\"}"
+
+          curl -X DELETE http://localhost:$PORT/user \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(echo $token | jq -r '.idToken')"
+
+          curl -X POST "https://identitytoolkit.googleapis.com/v1/accounts:delete?key=$FIREBASE_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"idToken\":\"$(echo $token | jq -r '.idToken')\"}"
+
+          kill $bg_pid
