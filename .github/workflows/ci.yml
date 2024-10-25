@@ -30,6 +30,7 @@ jobs:
 
       - name: Run Unit Test
         run: |
+          touch results/unit.xml
           ./test.sh unit > results/unit.xml
         continue-on-error: true
 
