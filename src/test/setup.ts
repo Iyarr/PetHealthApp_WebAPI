@@ -14,7 +14,7 @@ export async function createDogTable() {
         AttributeType: "S",
       },
       {
-        AttributeName: "hostId",
+        AttributeName: "hostUid",
         AttributeType: "S",
       },
     ],
@@ -26,10 +26,10 @@ export async function createDogTable() {
     ],
     GlobalSecondaryIndexes: [
       {
-        IndexName: "hostIdIndex",
+        IndexName: "hostUidIndex",
         KeySchema: [
           {
-            AttributeName: "hostId",
+            AttributeName: "hostUid",
             KeyType: "HASH",
           },
         ],
@@ -45,36 +45,6 @@ export async function createDogTable() {
   try {
     const dogTableData = await DBClient.send(describeTableCommand);
     console.log(JSON.stringify(dogTableData, null, 2));
-  } catch {
-    await DBClient.send(createTableCommand);
-  }
-}
-
-export async function createUserTable() {
-  const describeTableCommand = new DescribeTableCommand({
-    TableName: `${env.TABLE_PREFIX}Users`,
-  });
-
-  const createTableCommand = new CreateTableCommand({
-    AttributeDefinitions: [
-      {
-        AttributeName: "uid",
-        AttributeType: "S",
-      },
-    ],
-    KeySchema: [
-      {
-        AttributeName: "uid",
-        KeyType: "HASH",
-      },
-    ],
-    TableName: `${env.TABLE_PREFIX}Users`,
-    BillingMode: "PAY_PER_REQUEST",
-  });
-
-  try {
-    const userTableData = await DBClient.send(describeTableCommand);
-    console.log(JSON.stringify(userTableData, null, 2));
   } catch {
     await DBClient.send(createTableCommand);
   }

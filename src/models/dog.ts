@@ -23,12 +23,12 @@ class DogModel extends Model {
       expressionAttributeNames[`#${key}`] = key;
       expressionAttributeValues[`:${key}`] = this.createAttributeValue(value);
     }
-    expressionAttributeNames["#hostId"] = "hostId";
-    expressionAttributeValues[":hostId"] = this.createAttributeValue(uid);
+    expressionAttributeNames["#hostUid"] = "hostUid";
+    expressionAttributeValues[":hostUid"] = this.createAttributeValue(uid);
     const command = new UpdateItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
-      ConditionExpression: "#hostId = :hostId",
+      ConditionExpression: "#hostUid = :hostUid",
       UpdateExpression: `set ${updateItems.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
@@ -50,9 +50,9 @@ class DogModel extends Model {
   async batchGetMyDogs(id: string) {
     const command = new QueryCommand({
       TableName: this.tableName,
-      IndexName: "hostIdIndex",
+      IndexName: "hostUidIndex",
       KeyConditions: {
-        hostId: {
+        hostUid: {
           ComparisonOperator: "EQ",
           AttributeValueList: [{ S: id }],
         },
@@ -66,12 +66,12 @@ class DogModel extends Model {
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
       ReturnValues: "ALL_OLD",
-      ConditionExpression: "#hostId = :hostId",
+      ConditionExpression: "#hostUid = :hostUid",
       ExpressionAttributeNames: {
-        "#hostId": "hostId",
+        "#hostUid": "hostUid",
       },
       ExpressionAttributeValues: {
-        ":hostId": this.createAttributeValue(uid),
+        ":hostUid": this.createAttributeValue(uid),
       },
     });
 
