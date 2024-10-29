@@ -10,9 +10,9 @@ class UserDogs extends Model {
   async batchGetDogsFromId(id: string) {
     const command = new QueryCommand({
       TableName: this.tableName,
-      IndexName: "allowUidIndex",
+      IndexName: "hostUidIndex",
       KeyConditions: {
-        allowUserId: {
+        hostUid: {
           ComparisonOperator: "EQ",
           AttributeValueList: [{ S: id }],
         },
