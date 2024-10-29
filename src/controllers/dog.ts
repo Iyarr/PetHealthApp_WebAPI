@@ -4,7 +4,7 @@ import { dogModel } from "../models/dog.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    const dog: DogPostItem = Object.assign({ hostId: res.locals.uid }, req.body);
+    const dog: DogPostItem = Object.assign({ hostUid: res.locals.uid }, req.body);
     try {
       await dogModel.postItemCommand<DogPostItem>(dog);
       res.status(201).json({ message: "Dog created" });
@@ -23,7 +23,7 @@ export const dogController = {
   },
 
   async update(req: Request, res: Response) {
-    const dog: DogPostItem = Object.assign({ hostId: res.locals.uid }, req.body);
+    const dog: DogPostItem = Object.assign({ hostUid: res.locals.uid }, req.body);
     try {
       const result = await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
       if (!result) {

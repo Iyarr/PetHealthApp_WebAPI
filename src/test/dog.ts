@@ -9,7 +9,7 @@ const testDogItem: DogPostItem = {
   name: "testName",
   gender: "male",
   size: "small",
-  hostId: "testDogId",
+  hostUid: "testDogId",
 };
 
 const PutDogItem: DogUpdateItem = {
@@ -22,7 +22,7 @@ const UpdatedDogItem = {
   name: "testName",
   size: "medium",
   gender: "female",
-  hostId: "testDogId",
+  hostUid: "testDogId",
 };
 
 await createDogTable();
@@ -40,7 +40,7 @@ await test("Dog Test", async (t) => {
   });
 
   await t.test("Update dog", async () => {
-    const item = await dogModel.updateItemCommand(testDogItem.id, PutDogItem, testDogItem.hostId);
+    const item = await dogModel.updateItemCommand(testDogItem.id, PutDogItem, testDogItem.hostUid);
     strict.deepStrictEqual(item, UpdatedDogItem);
     console.log(JSON.stringify(item, null, 2));
   });
@@ -51,9 +51,9 @@ await test("Dog Test", async (t) => {
     console.log(JSON.stringify(item, null, 2));
   });
 
-  await t.test("Update dog with wrong hostId", async () => {
+  await t.test("Update dog with wrong hostUid", async () => {
     try {
-      await dogModel.updateItemCommand(testDogItem.id, PutDogItem, "wrongHostId");
+      await dogModel.updateItemCommand(testDogItem.id, PutDogItem, "wronghostUid");
     } catch (e) {
       strict.deepStrictEqual(e.message, "Failed to update item");
     }
@@ -68,7 +68,7 @@ await test("Dog Test", async (t) => {
   });
 
   await t.test("Delete dog", async () => {
-    const old_item = await dogModel.deleteItemCommand(testDogItem.id, testDogItem.hostId);
+    const old_item = await dogModel.deleteItemCommand(testDogItem.id, testDogItem.hostUid);
     console.log(JSON.stringify(old_item, null, 2));
     strict.ok(true);
   });
