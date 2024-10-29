@@ -5,6 +5,21 @@ import { check } from "express-validator";
 
 export const userController = {
   async create(req: Request, res: Response) {
+    const { id, username, email } = req.body;
+
+    // 必須フィールドが存在するか確認
+    if (!id || !username || !email) {
+      return res.status(400).json({ message: "ID, username, and email are required" });
+    }
+
+    // 不要なフィールドが含まれていないか確認
+    const allowedFields = ["id", "username", "email"];
+    const invalidFields = Object.keys(req.body).filter((key) => !allowedFields.includes(key));
+
+    if (invalidFields.length > 0) {
+      return res.status(400).json({ message: `Invalid fields: ${invalidFields.join(", ")}` });
+    }
+
     if (
       !(await check("id").isString().notEmpty().run(req)) ||
       !(await check("name").isString().notEmpty().run(req)) ||
