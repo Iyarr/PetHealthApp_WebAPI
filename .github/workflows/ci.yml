@@ -2,7 +2,7 @@ name: Unit Test For Develop Branch
 
 on:
   pull_request:
-    branches: ["develop"]
+    branches: ["develop", "master"]
 
 jobs:
   build:
@@ -29,13 +29,17 @@ jobs:
           npm run build
 
       - name: Run Unit Test
+        if: github.ref == 'refs/heads/develop'
         run: |
           touch results/unit.xml
+          chmod +x test.sh
           ./test.sh unit > results/unit.xml
         continue-on-error: true
 
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: Node Test Results
-          path: results/*.xml
+      - name: Run API Test on Master Branch
+        if: github.ref == 'refs/heads/master'
+        run: |
+          touch results/api.xml
+          chmod +x test.sh
+          ./test.sh api > results/api.xml
+        continue-on-error: true

@@ -44,7 +44,7 @@ export async function createDogTable() {
 
   try {
     const dogTableData = await DBClient.send(describeTableCommand);
-    console.log(JSON.stringify(dogTableData, null, 2));
+    console.log(`status:${dogTableData.$metadata.httpStatusCode}`);
   } catch {
     await DBClient.send(createTableCommand);
   }

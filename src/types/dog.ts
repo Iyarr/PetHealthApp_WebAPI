@@ -3,7 +3,6 @@ export type DogPostItem = {
   name: string;
   gender: string;
   size: string;
-  hostUid: string;
 };
 
 export type DogUpdateItem = {
