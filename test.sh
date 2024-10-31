@@ -14,6 +14,13 @@ export ON_DEVELOPMENT=true
 docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
   -jar DynamoDBLocal.jar -inMemory -port $DYNAMODB_PORT
 
+npm run build
 if [ "$1" == "unit" ]; then
-  npm test
+  npm run test:unit
+elif [ "$1" == "api" ]; then
+  nohup npm start > /dev/null 2>&1 &
+  bpid=$!
+  sleep 10
+  npm run test:api
+  kill $bpid
 fi

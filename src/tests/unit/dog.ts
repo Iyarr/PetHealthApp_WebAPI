@@ -1,15 +1,15 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
-import { DogUpdateItem, DogPostItem } from "../types/dog.js";
-import { dogModel } from "../models/dog.js";
-import { createDogTable } from "./setup.js";
+import { DogUpdateItem, DogPostItem } from "../../types/dog.js";
+import { dogModel } from "../../models/dog.js";
+import { createDogTable } from "../setup.js";
 
+const hostUid = "testDogId";
 const testDogItem: DogPostItem = {
   id: "testId",
   name: "testName",
   gender: "male",
   size: "small",
-  hostUid: "testDogId",
 };
 
 const PutDogItem: DogUpdateItem = {
@@ -22,7 +22,6 @@ const UpdatedDogItem = {
   name: "testName",
   size: "medium",
   gender: "female",
-  hostUid: "testDogId",
 };
 
 await createDogTable();
@@ -40,7 +39,7 @@ await test("Dog Test", async (t) => {
   });
 
   await t.test("Update dog", async () => {
-    const item = await dogModel.updateItemCommand(testDogItem.id, PutDogItem, testDogItem.hostUid);
+    const item = await dogModel.updateItemCommand(testDogItem.id, PutDogItem, hostUid);
     strict.deepStrictEqual(item, UpdatedDogItem);
     console.log(JSON.stringify(item, null, 2));
   });
@@ -68,7 +67,7 @@ await test("Dog Test", async (t) => {
   });
 
   await t.test("Delete dog", async () => {
-    const old_item = await dogModel.deleteItemCommand(testDogItem.id, testDogItem.hostUid);
+    const old_item = await dogModel.deleteItemCommand(testDogItem.id, hostUid);
     console.log(JSON.stringify(old_item, null, 2));
     strict.ok(true);
   });
