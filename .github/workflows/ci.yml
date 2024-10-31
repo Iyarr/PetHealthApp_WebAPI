@@ -1,4 +1,4 @@
-name: Unit Test For Develop Branch
+name: CI For Pull Request
 
 on:
   pull_request:
