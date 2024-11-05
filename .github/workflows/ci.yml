@@ -29,7 +29,7 @@ jobs:
           npm run build
 
       - name: Run Unit Test
-        if: github.ref == 'refs/heads/develop'
+        if: github.event.pull_request.base.ref == 'refs/heads/develop'
         run: |
           touch results/unit.xml
           chmod +x test.sh
@@ -37,7 +37,7 @@ jobs:
         continue-on-error: true
 
       - name: Run API Test on Master Branch
-        if: github.ref == 'refs/heads/master'
+        if: github.event.pull_request.base.ref == 'refs/heads/master'
         run: |
           touch results/api.xml
           chmod +x test.sh
