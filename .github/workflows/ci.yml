@@ -24,22 +24,14 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: Build
-        run: |
-          npm run build
-
       - name: Run Unit Test
-        if: github.ref == 'refs/heads/develop'
+        if: ${{ github.event.pull_request.base.ref == 'develop' }}
         run: |
-          touch results/unit.xml
           chmod +x test.sh
-          ./test.sh unit > results/unit.xml
-        continue-on-error: true
+          source ./test.sh unit
 
       - name: Run API Test on Master Branch
-        if: github.ref == 'refs/heads/master'
+        if: ${{ github.event.pull_request.base.ref == 'master' }}
         run: |
-          touch results/api.xml
           chmod +x test.sh
-          ./test.sh api > results/api.xml
-        continue-on-error: true
+          source ./test.sh api
