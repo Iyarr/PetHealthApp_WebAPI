@@ -27,15 +27,11 @@ jobs:
       - name: Run Unit Test
         if: ${{ github.event.pull_request.base.ref == 'develop' }}
         run: |
-          touch results/unit.xml
           chmod +x test.sh
-          ./test.sh unit > results/unit.xml
-        continue-on-error: true
+          ./test.sh unit
 
       - name: Run API Test on Master Branch
         if: ${{ github.event.pull_request.base.ref == 'master' }}
         run: |
-          touch results/api.xml
           chmod +x test.sh
-          ./test.sh api > results/api.xml
-        continue-on-error: true
+          ./test.sh api
