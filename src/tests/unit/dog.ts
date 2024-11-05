@@ -2,7 +2,6 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { DogUpdateItem, DogPostItem } from "../../types/dog.js";
 import { dogModel } from "../../models/dog.js";
-import { createDogTable } from "../setup.js";
 
 const hostUid = "testDogId";
 const testDogItem: DogPostItem = {
@@ -23,8 +22,6 @@ const UpdatedDogItem = {
   size: "medium",
   gender: "female",
 };
-
-await createDogTable();
 
 await test("Dog Test", async (t) => {
   await t.test("Create dog", async () => {
