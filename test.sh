@@ -12,9 +12,11 @@ export ON_DEVELOPMENT=true
 
 # Run DynamoDB Local
 docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
-  -jar DynamoDBLocal.jar -inMemory -port $DYNAMODB_PORT
+  -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
 
 npm run build
+node dist/tests/init.js
+sleep 5
 if [ "$1" == "unit" ]; then
   npm run test:unit
 elif [ "$1" == "api" ]; then
@@ -24,3 +26,5 @@ elif [ "$1" == "api" ]; then
   npm run test:api
   kill $bpid
 fi
+
+docker stop dynamodb

@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { dogRouter } from "./routes/dog.js";
 import { tokenAuth } from "./middle/auth.js";
 import { env } from "./utils/env.js";
-import { createDogTable } from "./tests/setup.js";
+import { createDogTable } from "./tests/init.js";
 
 const PORT = env.PORT;
 const app = express();

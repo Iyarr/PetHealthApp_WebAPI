@@ -3,7 +3,7 @@ import { strict } from "node:assert";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { DogUpdateItem, DogPostItem } from "../types/dog.js";
-import { createDogTable } from "./setup.js";
+import { createDogTable } from "./init.js";
 import { env } from "../utils/env.js";
 
 const testDogItem: DogPostItem = {

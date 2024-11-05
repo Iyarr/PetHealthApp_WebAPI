@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "build": "npm i && rm -rf dist && find src -name '*.ts' | xargs npx esbuild --format=esm --platform=node --outdir=dist",
-    "test:unit": "node --test dist/tests/unit/*.js",
+    "test:unit": "find dist/tests/unit -name '*.js' | xargs node --test",
     "test:api": "node --test dist/tests/api.js"
   },
   "author": "",
