@@ -28,10 +28,10 @@ jobs:
         if: ${{ github.event.pull_request.base.ref == 'develop' }}
         run: |
           chmod +x test.sh
-          ./test.sh unit
+          source ./test.sh unit
 
       - name: Run API Test on Master Branch
         if: ${{ github.event.pull_request.base.ref == 'master' }}
         run: |
           chmod +x test.sh
-          ./test.sh api
+          source ./test.sh api
