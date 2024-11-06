@@ -15,6 +15,7 @@ docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
   -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
 
 npm run build
+sleep 5
 node dist/tests/init.js
 sleep 5
 if [ "$1" == "unit" ]; then
