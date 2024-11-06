@@ -5,49 +5,23 @@ import { env } from "../utils/env.js";
 export async function createUserDogTable() {
   const createTableCommand = new CreateTableCommand({
     AttributeDefinitions: [
-      {
-        AttributeName: "uid",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "dogId",
-        AttributeType: "S",
-      },
+      { AttributeName: "uid", AttributeType: "S" },
+      { AttributeName: "dogId", AttributeType: "S" },
     ],
     KeySchema: [
-      {
-        AttributeName: "uid",
-        KeyType: "HASH",
-      },
-      {
-        AttributeName: "dogId",
-        KeyType: "RANGE",
-      },
+      { AttributeName: "uid", KeyType: "HASH" },
+      { AttributeName: "dogId", KeyType: "RANGE" },
     ],
     GlobalSecondaryIndexes: [
       {
         IndexName: "uidIndex",
-        KeySchema: [
-          {
-            AttributeName: "uid",
-            KeyType: "HASH",
-          },
-        ],
-        Projection: {
-          ProjectionType: "ALL",
-        },
+        KeySchema: [{ AttributeName: "uid", KeyType: "HASH" }],
+        Projection: { ProjectionType: "ALL" },
       },
       {
         IndexName: "dogIdIndex",
-        KeySchema: [
-          {
-            AttributeName: "dogId",
-            KeyType: "HASH",
-          },
-        ],
-        Projection: {
-          ProjectionType: "ALL",
-        },
+        KeySchema: [{ AttributeName: "dogId", KeyType: "HASH" }],
+        Projection: { ProjectionType: "ALL" },
       },
     ],
     TableName: `${env.TABLE_PREFIX}UserDogs`,
@@ -60,33 +34,15 @@ export async function createUserDogTable() {
 export async function createDogTable() {
   const createTableCommand = new CreateTableCommand({
     AttributeDefinitions: [
-      {
-        AttributeName: "id",
-        AttributeType: "S",
-      },
-      {
-        AttributeName: "hostUid",
-        AttributeType: "S",
-      },
+      { AttributeName: "id", AttributeType: "S" },
+      { AttributeName: "hostUid", AttributeType: "S" },
     ],
-    KeySchema: [
-      {
-        AttributeName: "id",
-        KeyType: "HASH",
-      },
-    ],
+    KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
     GlobalSecondaryIndexes: [
       {
         IndexName: "hostUidIndex",
-        KeySchema: [
-          {
-            AttributeName: "hostUid",
-            KeyType: "HASH",
-          },
-        ],
-        Projection: {
-          ProjectionType: "ALL",
-        },
+        KeySchema: [{ AttributeName: "hostUid", KeyType: "HASH" }],
+        Projection: { ProjectionType: "ALL" },
       },
     ],
     TableName: `${env.TABLE_PREFIX}Dogs`,

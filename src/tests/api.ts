@@ -2,23 +2,20 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { DogUpdateItem, DogPostItem } from "../types/dog.js";
-import { createDogTable } from "./init.js";
+import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
 import { env } from "../utils/env.js";
 
-const testDogItem: DogPostItem = {
+const dogPOSTRequestItem: DogPOSTRequestBody = {
   id: "testId",
   name: "testName",
   gender: "male",
   size: "small",
 };
 
-const PutDogItem: DogUpdateItem = {
+const dogPUTRequestBody: DogPUTRequestBody = {
   size: "medium",
   gender: "female",
 };
-
-await createDogTable();
 
 const app = initializeApp({
   apiKey: env.FIREBASE_API_KEY,
@@ -48,33 +45,33 @@ async function postMethod() {
   const response = await fetch(url, {
     method: "POST",
     headers: headers,
-    body: JSON.stringify(testDogItem),
+    body: JSON.stringify(dogPOSTRequestItem),
   });
   const data = await response.json();
   strict.deepStrictEqual(201, response.status);
 }
 
 async function getMethod() {
-  const response = await fetch(`${url}/${testDogItem.id}`, {
+  const response = await fetch(`${url}/${dogPOSTRequestItem.id}`, {
     method: "GET",
     headers: headers,
   });
   const data = await response.json();
-  strict.deepStrictEqual(data.dog, { ...testDogItem, hostUid: loginUser.user.uid });
+  strict.deepStrictEqual(data.dog, { ...dogPOSTRequestItem, hostUid: loginUser.user.uid });
 }
 
 async function putMethod() {
-  const response = await fetch(`${url}/${testDogItem.id}`, {
+  const response = await fetch(`${url}/${dogPOSTRequestItem.id}`, {
     method: "PUT",
     headers: headers,
-    body: JSON.stringify(PutDogItem),
+    body: JSON.stringify(dogPUTRequestBody),
   });
   const data = await response.json();
   strict.deepStrictEqual(data.message, "Dog updated");
 }
 
 async function deleteMethod() {
-  const response = await fetch(`${url}/${testDogItem.id}`, {
+  const response = await fetch(`${url}/${dogPOSTRequestItem.id}`, {
     method: "DELETE",
     headers: headers,
   });
