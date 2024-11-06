@@ -3,7 +3,6 @@ import { strict } from "node:assert";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
-import { createDogTable } from "./init.js";
 import { env } from "../utils/env.js";
 
 const dogPOSTRequestItem: DogPOSTRequestBody = {
@@ -17,8 +16,6 @@ const dogPUTRequestBody: DogPUTRequestBody = {
   size: "medium",
   gender: "female",
 };
-
-await createDogTable();
 
 const app = initializeApp({
   apiKey: env.FIREBASE_API_KEY,
