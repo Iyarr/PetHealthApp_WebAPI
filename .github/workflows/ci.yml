@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: Run Unit Test
+      - name: Run Unit Test on Develop Branch
         if: ${{ github.event.pull_request.base.ref == 'develop' }}
         run: |
           chmod +x test.sh
