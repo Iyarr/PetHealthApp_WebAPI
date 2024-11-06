@@ -1,12 +1,12 @@
 import { json, Request, Response } from "express";
-import { DogPostItem } from "../types/dog.js";
+import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    const dog: DogPostItem = Object.assign({ hostUid: res.locals.uid }, req.body);
+    const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
     try {
-      await dogModel.postItemCommand<DogPostItem>(dog);
+      await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
       res.status(201).json({ message: "Dog created" });
     } catch (e) {
       res.status(400).json({ message: e.message });
@@ -23,7 +23,7 @@ export const dogController = {
   },
 
   async update(req: Request, res: Response) {
-    const dog: DogPostItem = Object.assign({ hostUid: res.locals.uid }, req.body);
+    const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
     try {
       const result = await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
       if (!result) {
