@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: "20.x"
 
+      - name: docker pull
+        run: docker pull amazon/dynamodb-local:latest
+
       - name: Run Unit Test on Develop Branch
         if: ${{ github.event.pull_request.base.ref == 'develop' }}
         run: |
