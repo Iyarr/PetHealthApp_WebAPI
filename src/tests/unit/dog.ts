@@ -1,37 +1,36 @@
 import { test } from "node:test";
 import { strict } from "node:assert";
-import { DogUpdateItem, DogPostItem } from "../../types/dog.js";
+import { DogPUTRequestBody, DogPOSTRequestBody } from "../../types/dog.js";
 import { dogModel } from "../../models/dog.js";
 
 const hostUid = "testDogId";
-const testDogItem: DogPostItem = {
+const testDogItem: DogPOSTRequestBody = {
   id: "testId",
   name: "testName",
   gender: "male",
   size: "small",
 };
 
-const PutDogItem: DogUpdateItem = {
+const PutDogItem: DogPUTRequestBody = {
   size: "medium",
   gender: "female",
 };
 
 const UpdatedDogItem = {
-  id: "testId",
-  name: "testName",
-  size: "medium",
-  gender: "female",
+  ...testDogItem,
+  ...PutDogItem,
+  ...{ hostUid },
 };
 
 await test("Dog Test", async (t) => {
   await t.test("Create dog", async () => {
-    await dogModel.postItemCommand<DogPostItem>(testDogItem);
+    await dogModel.postItemCommand<DogPOSTRequestBody>({ ...testDogItem, ...{ hostUid } });
     strict.ok(true);
   });
 
   await t.test("Read dog", async () => {
     const item = await dogModel.getItemCommand({ id: testDogItem.id });
-    strict.deepStrictEqual(item, testDogItem);
+    strict.deepStrictEqual(item, { ...testDogItem, ...{ hostUid } });
     console.log(JSON.stringify(item, null, 2));
   });
 
@@ -57,7 +56,7 @@ await test("Dog Test", async (t) => {
 
   await t.test("Try to create equal id dog", async () => {
     try {
-      await dogModel.postItemCommand<DogPostItem>(testDogItem);
+      await dogModel.postItemCommand<DogPOSTRequestBody>(testDogItem);
     } catch (e) {
       strict.deepStrictEqual(e.message, "Item already exists");
     }

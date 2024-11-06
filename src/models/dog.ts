@@ -7,14 +7,14 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
-import { DogUpdateItem } from "../types/dog.js";
+import { DogPUTRequestBody } from "../types/dog.js";
 
 class DogModel extends Model {
   constructor() {
     super("Dogs");
   }
 
-  async updateItemCommand(id: string, item: DogUpdateItem, uid: string) {
+  async updateItemCommand(id: string, item: DogPUTRequestBody, uid: string) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, AttributeValue> = {};
