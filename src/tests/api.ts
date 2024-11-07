@@ -2,18 +2,18 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { DogUpdateItem, DogPostItem } from "../types/dog.js";
+import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
 import { createDogTable } from "./init.js";
 import { env } from "../utils/env.js";
 
-const testDogItem: DogPostItem = {
+const testDogItem: DogPOSTRequestBody = {
   id: "testId",
   name: "testName",
   gender: "male",
   size: "small",
 };
 
-const PutDogItem: DogUpdateItem = {
+const PutDogItem: DogPUTRequestBody = {
   size: "medium",
   gender: "female",
 };
