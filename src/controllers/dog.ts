@@ -1,13 +1,19 @@
 import { json, Request, Response } from "express";
+import { randomUUID } from "crypto";
 import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
+    const id = randomUUID();
+    const dog: DogPOSTRequestBody = {
+      id,
+      hostUid: res.locals.uid,
+      ...req.body,
+    };
     try {
       await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
-      res.status(201).json({ message: "Dog created" });
+      res.status(201).json({ message: "Dog created", data: { id } });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -16,7 +22,7 @@ export const dogController = {
   async read(req: Request, res: Response) {
     try {
       const dog = await dogModel.getItemCommand({ id: req.params.id });
-      res.status(200).json({ dog });
+      res.status(200).json({ message: "OK", data: dog });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
     }
