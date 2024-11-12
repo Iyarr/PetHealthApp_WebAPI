@@ -1,5 +1,4 @@
 import {
-  GetItemCommand,
   QueryCommand,
   UpdateItemCommand,
   DeleteItemCommand,
@@ -35,16 +34,8 @@ class DogModel extends Model {
       ReturnValues: "ALL_NEW",
     });
 
-    try {
-      const result = await DBClient.send(command);
-      if (result.$metadata.httpStatusCode !== 200) {
-        throw new Error("Failed to update item");
-      }
-
-      return this.formatItemFromCommand(result.Attributes);
-    } catch (e) {
-      throw new Error("Failed to update item");
-    }
+    const output = await DBClient.send(command);
+    return this.formatItemFromCommand(output.Attributes);
   }
 
   async batchGetMyDogs(id: string) {
@@ -58,7 +49,8 @@ class DogModel extends Model {
         },
       },
     });
-    return await DBClient.send(command);
+    const output = await DBClient.send(command);
+    return output.Items.map((item) => this.formatItemFromCommand(item));
   }
 
   async deleteItemCommand(id: string, uid: string) {
@@ -75,12 +67,8 @@ class DogModel extends Model {
       },
     });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(id, result);
-      throw new Error("Failed to delete item");
-    }
-    return this.formatItemFromCommand(result.Attributes);
+    const output = await DBClient.send(command);
+    return this.formatItemFromCommand(output.Attributes);
   }
 }
 
