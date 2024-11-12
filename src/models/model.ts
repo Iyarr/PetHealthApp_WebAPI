@@ -37,11 +37,8 @@ export class Model {
       if (result.Attributes !== undefined) {
         throw new Error("Existing item updated mistakenly");
       }
-    } catch (error) {
-      if (error.message === "The conditional request failed") {
-        throw new Error("Item already exists");
-      }
-      throw new Error(error.message);
+    } catch (e) {
+      throw new Error(e.message);
     }
   }
 

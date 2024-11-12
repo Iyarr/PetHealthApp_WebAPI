@@ -7,7 +7,7 @@ import { dogModel } from "../../models/dog.js";
 const hostUid = "testDogId";
 const id = randomUUID();
 
-const testDogItem: DogPOSTRequestBody = {
+const dogPOSTReqBody: DogPOSTRequestBody = {
   name: "testName",
   gender: "male",
   size: "small",
@@ -18,25 +18,26 @@ const PutDogItem: DogPUTRequestBody = {
   gender: "female",
 };
 
+const testDogItem = {
+  id,
+  hostUid,
+  ...dogPOSTReqBody,
+};
+
 const UpdatedDogItem = {
   ...testDogItem,
   ...PutDogItem,
-  ...{ hostUid },
 };
 
 await test("Dog Test", async (t) => {
   await t.test("Create dog", async () => {
-    await dogModel.postItemCommand({
-      hostUid,
-      id,
-      ...testDogItem,
-    });
+    await dogModel.postItemCommand(testDogItem);
     strict.ok(true);
   });
 
   await t.test("Read dog", async () => {
     const item = await dogModel.getItemCommand({ id });
-    strict.deepStrictEqual(item, { ...testDogItem, id, hostUid });
+    strict.deepStrictEqual(item, testDogItem);
     console.log(JSON.stringify(item, null, 2));
   });
 
@@ -56,15 +57,16 @@ await test("Dog Test", async (t) => {
     try {
       await dogModel.updateItemCommand(id, PutDogItem, "wronghostUid");
     } catch (e) {
-      strict.deepStrictEqual(e.message, "Failed to update item");
+      strict.deepStrictEqual(e.message, "The conditional request failed");
     }
   });
 
   await t.test("Try to create equal id dog", async () => {
     try {
       await dogModel.postItemCommand<DogPOSTRequestBody>(testDogItem);
+      strict.fail("Should not update");
     } catch (e) {
-      strict.deepStrictEqual(e.message, "Item already exists");
+      strict.deepStrictEqual(e.message, "The conditional request failed");
     }
   });
 
