@@ -62,8 +62,8 @@ async function getMethod() {
     method: "GET",
     headers: headers,
   });
-  const data = await response.json();
-  strict.deepStrictEqual(data.dog, { ...dogPOSTRequestItem, hostUid: loginUser.user.uid });
+  const resBody = await response.json();
+  strict.deepStrictEqual(resBody.data.dog, testDogItem);
 }
 
 async function putMethod() {

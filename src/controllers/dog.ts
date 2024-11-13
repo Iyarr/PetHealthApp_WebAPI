@@ -22,7 +22,7 @@ export const dogController = {
   async read(req: Request, res: Response) {
     try {
       const dog = await dogModel.getItemCommand({ id: req.params.id });
-      res.status(200).json({ message: "OK", data: dog });
+      res.status(200).json({ message: "OK", data: { dog } });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
     }
