@@ -6,57 +6,59 @@ import { dogModel } from "../../models/dog.js";
 import { UserDogPOSTRequestBody } from "../../types/userdog.js";
 import { DogPOSTRequestBody } from "../../types/dog.js";
 
-const userNum = 9;
-const dogNum = 12;
-const userDogSpecies = 3;
+const userNum = 4;
+const dogNum = 4;
 
 const sizes = {
   0: "small",
   1: "medium",
   2: "big",
 };
-const testUids = Array(userNum).map((i: number) => `testUid${i}`);
+const genders = {
+  0: "male",
+  1: "female",
+};
 
+const testUids = Array(userNum).map((i: number) => `testUid${i}`);
 const testDogItems = Array(dogNum).map((i: number) => {
   const reqBody: DogPOSTRequestBody = {
     name: `testName${i}`,
-    gender: i % 2 ? "male" : "female",
+    gender: genders[i % 2],
     size: sizes[i % 3],
   };
   const id = randomUUID();
-  const hostUid = testUids[i % userNum];
+  const hostUid = `testUid${i / 2}`;
   return {
     id,
+    hostUid,
     ...reqBody,
   };
 });
 
-const testUserDogItems: UserDogPOSTRequestBody[] = testDogItems.map((testDogItem) => {
-  if (testDogItem.size === "small") {
-    return {
-      dogId: testDogItem.id,
-      uid: testUids[0],
-    };
-  } else if (testDogItem.size === "medium") {
-    return {
-      dogId: testDogItem.id,
-      uid: testUids[1],
-    };
-  } else {
-    return {
-      dogId: testDogItem.id,
-      uid: testUids[2],
-    };
-  }
-});
+const testUserDogItems: UserDogPOSTRequestBody[] = [
+  {
+    dogId: testDogItems[0].id,
+    uid: testUids[1],
+  },
+  {
+    dogId: testDogItems[1].id,
+    uid: testUids[1],
+  },
+  {
+    dogId: testDogItems[1].id,
+    uid: testUids[2],
+  },
+  {
+    dogId: testDogItems[2].id,
+    uid: testUids[2],
+  },
+];
 
 await test("UserDog Test", async (t) => {
-  await test("Create Test Dogs", async () => {
+  await test("Create Dogs for Test", async () => {
     Promise.all(
       testDogItems.map(async (testDogItem) => {
-        for (const hostUid of testUids) {
-          await dogModel.postItemCommand({ ...testDogItem, ...{ hostUid } });
-        }
+        await dogModel.postItemCommand<DogPOSTRequestBody>(testDogItem);
       })
     ).then(() => strict.ok(true));
   });
