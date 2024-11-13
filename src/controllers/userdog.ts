@@ -15,7 +15,7 @@ export const userdogController = {
 
   async readUsers(req: Request, res: Response) {
     try {
-      const userdog = await userDogModel.getItemCommand(req.params as UserDogsDELETERequestParams);
+      const userdog = await userDogModel.getUsersFromDogId(req.params.dogId);
       res.status(200).json({ userdog });
     } catch (e) {
       res.status(404).json({ message: "userdog not found" });
@@ -24,7 +24,7 @@ export const userdogController = {
 
   async readDogs(req: Request, res: Response) {
     try {
-      const userdogs = await userDogModel.getDogIdsFromUid(res.locals.uid);
+      const userdogs = await userDogModel.getDogsFromUid(res.locals.uid);
       res.status(200).json({ userdogs });
     } catch (e) {
       res.status(404).json({ message: "userdogs not found" });

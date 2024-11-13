@@ -70,4 +70,22 @@ await test("UserDog Test", async (t) => {
       )
     ).then(() => strict.ok(true));
   });
+
+  await test("Get Dogs from Uid", async () => {
+    Promise.all(
+      testUids.map(async (uid) => {
+        const userDogs = await userDogModel.getDogsFromUid(uid);
+        strict.ok(true);
+      })
+    );
+  });
+
+  await test("Get Users from DogId", async () => {
+    Promise.all(
+      testDogItems.map(async (dogItem) => {
+        const users = await userDogModel.getUsersFromDogId(dogItem.id);
+        strict.ok(true);
+      })
+    );
+  });
 });

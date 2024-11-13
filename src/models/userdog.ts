@@ -8,7 +8,7 @@ class UserDogs extends Model {
     super("UserDogs");
   }
 
-  async getDogIdsFromUid(uid: string) {
+  async getDogsFromUid(uid: string) {
     const command = new QueryCommand({
       TableName: this.tableName,
       IndexName: "uidIndex",
