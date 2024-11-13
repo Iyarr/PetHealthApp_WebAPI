@@ -1,5 +1,4 @@
 import {
-  GetItemCommand,
   QueryCommand,
   UpdateItemCommand,
   DeleteItemCommand,
@@ -7,14 +6,14 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
-import { DogUpdateItem } from "../types/dog.js";
+import { DogPUTRequestBody } from "../types/dog.js";
 
 class DogModel extends Model {
   constructor() {
     super("Dogs");
   }
 
-  async updateItemCommand(id: string, item: DogUpdateItem, uid: string) {
+  async updateItemCommand(id: string, item: DogPUTRequestBody, uid: string) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, AttributeValue> = {};
@@ -23,42 +22,35 @@ class DogModel extends Model {
       expressionAttributeNames[`#${key}`] = key;
       expressionAttributeValues[`:${key}`] = this.createAttributeValue(value);
     }
-    expressionAttributeNames["#hostId"] = "hostId";
-    expressionAttributeValues[":hostId"] = this.createAttributeValue(uid);
+    expressionAttributeNames["#hostUid"] = "hostUid";
+    expressionAttributeValues[":hostUid"] = this.createAttributeValue(uid);
     const command = new UpdateItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
-      ConditionExpression: "#hostId = :hostId",
+      ConditionExpression: "#hostUid = :hostUid",
       UpdateExpression: `set ${updateItems.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: "ALL_NEW",
     });
 
-    try {
-      const result = await DBClient.send(command);
-      if (result.$metadata.httpStatusCode !== 200) {
-        throw new Error("Failed to update item");
-      }
-
-      return this.formatItemFromCommand(result.Attributes);
-    } catch (e) {
-      throw new Error("Failed to update item");
-    }
+    const output = await DBClient.send(command);
+    return this.formatItemFromCommand(output.Attributes);
   }
 
   async batchGetMyDogs(id: string) {
     const command = new QueryCommand({
       TableName: this.tableName,
-      IndexName: "hostIdIndex",
+      IndexName: "hostUidIndex",
       KeyConditions: {
-        hostId: {
+        hostUid: {
           ComparisonOperator: "EQ",
           AttributeValueList: [{ S: id }],
         },
       },
     });
-    return await DBClient.send(command);
+    const output = await DBClient.send(command);
+    return output.Items.map((item) => this.formatItemFromCommand(item));
   }
 
   async deleteItemCommand(id: string, uid: string) {
@@ -66,21 +58,17 @@ class DogModel extends Model {
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
       ReturnValues: "ALL_OLD",
-      ConditionExpression: "#hostId = :hostId",
+      ConditionExpression: "#hostUid = :hostUid",
       ExpressionAttributeNames: {
-        "#hostId": "hostId",
+        "#hostUid": "hostUid",
       },
       ExpressionAttributeValues: {
-        ":hostId": this.createAttributeValue(uid),
+        ":hostUid": this.createAttributeValue(uid),
       },
     });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(id, result);
-      throw new Error("Failed to delete item");
-    }
-    return this.formatItemFromCommand(result.Attributes);
+    const output = await DBClient.send(command);
+    return this.formatItemFromCommand(output.Attributes);
   }
 }
 

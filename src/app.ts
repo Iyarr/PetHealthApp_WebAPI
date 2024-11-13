@@ -1,21 +1,14 @@
 import express, { Request, Response } from "express";
-import { userRouter } from "./routes/user.js";
 import { dogRouter } from "./routes/dog.js";
 import { tokenAuth } from "./middle/auth.js";
 import { env } from "./utils/env.js";
-import { createDogTable, createUserTable } from "./test/setup.js";
 
 const PORT = env.PORT;
 const app = express();
-if (env.ON_DEVELOPMENT) {
-  await createUserTable();
-  await createDogTable();
-}
 
 app.use(express.json());
 
 app.use(tokenAuth);
-app.use("/user", userRouter);
 app.use("/dog", dogRouter);
 
 app.get("/", (req: Request, res: Response) => {

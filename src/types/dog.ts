@@ -1,12 +1,10 @@
-export type DogPostItem = {
-  id: string;
+export type DogPOSTRequestBody = {
   name: string;
   gender: string;
   size: string;
-  hostId: string;
 };
 
-export type DogUpdateItem = {
+export type DogPUTRequestBody = {
   name?: string;
   gender?: string;
   size?: string;
