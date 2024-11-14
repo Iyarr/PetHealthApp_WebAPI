@@ -8,6 +8,34 @@ class UserDogs extends Model {
     super("UserDogs");
   }
 
+  async postItemCommand<T extends object>(item: T) {
+    // 重複チェックのための条件式を作成
+    const expressionAttributeNames: Record<string, string> = {};
+    const conditionExpression = Object.keys(item)
+      .map((key) => {
+        expressionAttributeNames[`#${key}`] = key;
+        return `attribute_not_exists(#${key})`;
+      })
+      .join(" AND ");
+
+    const command = new PutItemCommand({
+      TableName: this.tableName,
+      Item: this.formatItemForCommand(item),
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ReturnValues: "ALL_OLD",
+    });
+
+    try {
+      const result = await DBClient.send(command);
+      if (result.Attributes !== undefined) {
+        throw new Error("Existing item updated mistakenly");
+      }
+    } catch (e) {
+      throw new Error(e.message);
+    }
+  }
+
   async getDogsFromUid(uid: string) {
     const command = new QueryCommand({
       TableName: this.tableName,

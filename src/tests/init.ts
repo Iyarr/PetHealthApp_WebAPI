@@ -58,6 +58,7 @@ console.log(response.TableNames);
 
 if (!response.TableNames.includes(`${env.TABLE_PREFIX}Dogs`)) {
   await createDogTable();
-} else if (!response.TableNames.includes(`${env.TABLE_PREFIX}UserDogs`)) {
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}UserDogs`)) {
   await createUserDogTable();
 }

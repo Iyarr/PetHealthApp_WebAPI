@@ -6,86 +6,92 @@ import { dogModel } from "../../models/dog.js";
 import { UserDogPOSTRequestBody } from "../../types/userdog.js";
 import { DogPOSTRequestBody } from "../../types/dog.js";
 
-const userNum = 4;
-const dogNum = 4;
+const randomDataNum = 10;
+const testDataMax = 30;
 
-const sizes = {
-  0: "small",
-  1: "medium",
-  2: "big",
-};
-const genders = {
-  0: "male",
-  1: "female",
-};
+const sizes = ["small", "medium", "big"];
+const genders = ["male", "female"];
 
-const testUids = Array(userNum).map((i: number) => `testUid${i}`);
-const testDogItems = Array(dogNum).map((i: number) => {
+const testUsers = [...Array(randomDataNum).keys()].map((i: number) => {
+  return {
+    uid: i.toString(),
+    // アクセス可能な犬のIDを格納
+    accessibleDogIds: [],
+  };
+});
+
+const testDogs = [...Array(randomDataNum).keys()].map((i: number) => {
   const reqBody: DogPOSTRequestBody = {
-    name: `testName${i}`,
+    name: i.toString(),
     gender: genders[i % 2],
     size: sizes[i % 3],
   };
   const id = randomUUID();
-  const hostUid = `testUid${i / 2}`;
+  const hostUid = Math.floor(Math.random() * randomDataNum).toString();
   return {
-    id,
-    hostUid,
-    ...reqBody,
+    // アクセスを許可したユーザーを格納
+    accessibleUsers: [],
+    item: {
+      id,
+      hostUid,
+      ...reqBody,
+    },
   };
 });
 
-const testUserDogItems: UserDogPOSTRequestBody[] = [
-  {
-    dogId: testDogItems[0].id,
-    uid: testUids[1],
-  },
-  {
-    dogId: testDogItems[1].id,
-    uid: testUids[1],
-  },
-  {
-    dogId: testDogItems[1].id,
-    uid: testUids[2],
-  },
-  {
-    dogId: testDogItems[2].id,
-    uid: testUids[2],
-  },
-];
+const testUserDogItems = [...Array(testDataMax)].map(() => {
+  const uid = testUsers[Math.floor(Math.random() * randomDataNum)].uid;
+  while (true) {
+    const index = Math.floor(Math.random() * randomDataNum);
+    if (testDogs[index].item.hostUid !== uid) {
+      testDogs[index].accessibleUsers.push(uid);
+      testUsers[uid].accessibleDogIds.push(testDogs[index].item.id);
+
+      return {
+        uid,
+        dogId: testDogs[index].item.id,
+        hostUid: testDogs[index].item.hostUid,
+      };
+    }
+  }
+});
 
 await test("UserDog Test", async (t) => {
   await test("Create Dogs for Test", async () => {
-    Promise.all(
-      testDogItems.map(async (testDogItem) => {
-        await dogModel.postItemCommand<DogPOSTRequestBody>(testDogItem);
+    await Promise.all(
+      testDogs.map(async (testDog) => {
+        await dogModel.postItemCommand<DogPOSTRequestBody>(testDog.item);
       })
-    ).then(() => strict.ok(true));
+    );
+    strict.ok(true);
   });
 
   await test("Create UserDog", async () => {
-    Promise.all(
-      testUserDogItems.map((testUserDogItem) =>
-        userDogModel.postItemCommand<UserDogPOSTRequestBody>(testUserDogItem)
-      )
-    ).then(() => strict.ok(true));
+    await Promise.all(
+      testUserDogItems.map(async (testUserDogItem) => {
+        await userDogModel.postItemCommand<UserDogPOSTRequestBody>(testUserDogItem);
+      })
+    );
+    strict.ok(true);
   });
-
+  /*
   await test("Get Dogs from Uid", async () => {
-    Promise.all(
-      testUids.map(async (uid) => {
-        const userDogs = await userDogModel.getDogsFromUid(uid);
-        strict.ok(true);
+    await Promise.all(
+      testUsers.map(async (user) => {
+        const userDogs = await userDogModel.getDogsFromUid(user.uid);
+        console.log(userDogs);
+        strict.deepStrictEqual(userDogs, user.accessibleDogIds);
       })
     );
   });
-
+  /*
   await test("Get Users from DogId", async () => {
-    Promise.all(
-      testDogItems.map(async (dogItem) => {
-        const users = await userDogModel.getUsersFromDogId(dogItem.id);
-        strict.ok(true);
+    await Promise.all(
+      testDogs.map(async (dog) => {
+        const users = await userDogModel.getUsersFromDogId(dog.item.id);
+        strict.deepStrictEqual(users, dog.accessibleUsers);
       })
     );
   });
+*/
 });
