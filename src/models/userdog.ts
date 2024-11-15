@@ -2,6 +2,7 @@ import { QueryCommand, DeleteItemCommand, PutItemCommand } from "@aws-sdk/client
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { UserDogsDELETERequestParams } from "../types/userdog.js";
+import { UserDogsTablePK } from "../common/Dynamodb.js";
 
 class UserDogs extends Model {
   constructor() {
