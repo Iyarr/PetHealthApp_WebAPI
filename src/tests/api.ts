@@ -2,7 +2,7 @@ import { test } from "node:test";
 import { strict } from "node:assert";
 import { initializeApp } from "firebase/app";
 import { randomUUID } from "node:crypto";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
 import { dogGenders, dog3Sizes } from "../common/dogs.js";
 import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
 import {
@@ -21,10 +21,27 @@ const app = initializeApp({
   projectId: env.FIREBASE_PROJECT_ID,
 });
 
+type TestUser = {
+  user: UserCredential;
+  accessibleDogIds: string[];
+  item: { uid: string; email: string; password: string };
+  token: string;
+};
+
+type TestDog = {
+  accessibleUsers: string[];
+  item: {
+    id?: string;
+    hostUid?: string;
+  } & DogPOSTRequestBody;
+  hostUser: TestUser;
+  updateItem: DogPUTRequestBody;
+};
+
 const numberOfVariousTestData = 10;
 const auth = getAuth(app);
 // 一時的なアカウント作成用のランダム文字列を生成
-const testUsers = await Promise.all(
+const testUsers: TestUser[] = await Promise.all(
   [...Array(numberOfVariousTestData).keys()].map(async () => {
     const random = Math.random().toString();
     const email = `${random}@example.com`;
@@ -45,7 +62,7 @@ const testUsers = await Promise.all(
   })
 );
 
-const testDogs = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
+const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
   const reqBody: DogPOSTRequestBody = {
     name: i.toString(),
     gender: dogGenders[i % 2],
@@ -60,7 +77,6 @@ const testDogs = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
       hostUid,
       ...reqBody,
     },
-    id: "",
     // UserのtokenやaccessibleDogIdsにアクセスするのに必要
     hostUser: testUsers[hostUidIndex],
     updateItem: {
@@ -79,12 +95,12 @@ const testUserDogs = [...Array(numberOfVariousTestData)].map(() => {
     const hostUser = dog.hostUser;
     if (hostUser.item.uid !== uid && !dog.accessibleUsers.includes(uid)) {
       dog.accessibleUsers.push(uid);
-      hostUser.accessibleDogIds.push(dog.id);
+      hostUser.accessibleDogIds.push(dog.item.id);
 
       return {
         item: {
           uid,
-          dogId: dog.id,
+          dogId: dog.item.id,
           hostUid: dog.item.hostUid,
         },
         hostUser,
@@ -111,7 +127,7 @@ await test("Dog API Test", async () => {
         });
         const responseJson = await response.json();
         // Dogデータ作成後にidを取得
-        testDog.id = responseJson.data.id;
+        testDog.item.id = responseJson.data.id;
         strict.deepStrictEqual(201, response.status);
       })
     );
@@ -119,7 +135,7 @@ await test("Dog API Test", async () => {
   await test("Dog get Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.id}`, {
+        const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "GET",
           headers: headers(testDog.hostUser.token),
         });
@@ -131,7 +147,7 @@ await test("Dog API Test", async () => {
   await test("Dog put Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.id}`, {
+        const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "PUT",
           headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.updateItem),
@@ -144,19 +160,23 @@ await test("Dog API Test", async () => {
   await test("Dog read after put Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.id}`, {
+        const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "GET",
           headers: headers(testDog.hostUser.token),
         });
         const resBody = await response.json();
-        strict.deepStrictEqual(resBody.data.dog, { ...testDog.item, ...testDog.updateItem });
+        strict.deepStrictEqual(resBody.data.dog, {
+          ...testDog.item,
+          ...testDog.updateItem,
+          id: testDog.item.id,
+        });
       })
     );
   });
   await test("Dog delete Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.id}`, {
+        const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "DELETE",
           headers: headers(testDog.hostUser.token),
         });
@@ -178,7 +198,7 @@ await test("UserDogs API Test", async () => {
           body: JSON.stringify(testDog.item),
         });
         const responseJson = await response.json();
-        testDog.id = responseJson.data.id;
+        testDog.item.id = responseJson.data.id;
         strict.deepStrictEqual(201, response.status);
       })
     );
@@ -213,7 +233,7 @@ await test("UserDogs API Test", async () => {
   await test("get Users from DogId Test", async () => {
     await Promise.all(
       testDogs.map(async (dog) => {
-        const response = await fetch(`${url}/dog/${dog.id}`, {
+        const response = await fetch(`${url}/dog/${dog.item.id}`, {
           method: "GET",
           headers: headers(dog.hostUser.token),
         });
