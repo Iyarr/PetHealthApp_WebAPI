@@ -26,9 +26,9 @@ const auth = getAuth(app);
 // 一時的なアカウント作成用のランダム文字列を生成
 const testUsers = await Promise.all(
   [...Array(numberOfVariousTestData).keys()].map(async () => {
-    const random = randomUUID();
+    const random = Math.random().toString();
     const email = `${random}example.com`;
-    const password = random;
+    const password = randomUUID();
     const user = await createUserWithEmailAndPassword(auth, email, password);
     const token = await user.user.getIdToken();
 
