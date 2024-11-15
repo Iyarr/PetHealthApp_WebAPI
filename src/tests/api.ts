@@ -53,16 +53,17 @@ const testDogs = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
   };
   const id = randomUUID();
   const hostUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
-  const hostUid = testUsers[hostUidIndex].item.uid;
+  const hostUid = testUsers[hostUidIndex];
   return {
-    // アクセスを許可したユーザーを格納
+    // アクセスを許可したユーザーのIDを格納
     accessibleUsers: [],
     item: {
       id,
       hostUid,
       ...reqBody,
     },
-    hostUserToken: testUsers[hostUidIndex].token,
+    // UserのtokenやaccessibleDogIdsにアクセスするのに必要
+    hostUser: testUsers[hostUidIndex],
     updateItem: {
       gender: dogGenders[(i + 1) % 2],
       size: dog3Sizes[(i + 1) % 3],
@@ -70,18 +71,25 @@ const testDogs = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
   };
 });
 
-const testUserDogItems = [...Array(numberOfVariousTestData)].map(() => {
-  const uid = testUsers[Math.floor(Math.random() * numberOfVariousTestData)].item.uid;
+const testUserDogs = [...Array(numberOfVariousTestData)].map(() => {
+  const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
+  const uid = user.item.uid;
   while (true) {
-    const index = Math.floor(Math.random() * numberOfVariousTestData);
-    if (testDogs[index].item.hostUid !== uid && !testDogs[index].accessibleUsers.includes(uid)) {
-      testDogs[index].accessibleUsers.push(uid);
-      testUsers[uid].accessibleDogIds.push(testDogs[index].item.id);
+    const dogIndex = Math.floor(Math.random() * numberOfVariousTestData);
+    const dog = testDogs[dogIndex];
+    const hostUser = dog.hostUser;
+    if (hostUser.item.uid !== uid && !dog.accessibleUsers.includes(uid)) {
+      dog.accessibleUsers.push(uid);
+      hostUser.accessibleDogIds.push(dog.item.id);
 
       return {
-        uid,
-        dogId: testDogs[index].item.id,
-        hostUid: testDogs[index].item.hostUid,
+        item: {
+          uid,
+          dogId: dog.item.id,
+          hostUid: dog.item.hostUid,
+        },
+        hostUser,
+        dog,
       };
     }
   }
@@ -99,7 +107,7 @@ await test("Dog API Test", async () => {
       testDogs.map(async (testDog) => {
         const response = await fetch(url, {
           method: "POST",
-          headers: headers(testDog.hostUserToken),
+          headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.item),
         });
         const responseJson = await response.json();
@@ -113,7 +121,7 @@ await test("Dog API Test", async () => {
       testDogs.map(async (testDog) => {
         const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "GET",
-          headers: headers(testDog.hostUserToken),
+          headers: headers(testDog.hostUser.token),
         });
         const resBody = await response.json();
         strict.deepStrictEqual(resBody.data.dog, testDog.item);
@@ -125,7 +133,7 @@ await test("Dog API Test", async () => {
       testDogs.map(async (testDog) => {
         const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "PUT",
-          headers: headers(testDog.hostUserToken),
+          headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.updateItem),
         });
         const data = await response.json();
@@ -138,7 +146,7 @@ await test("Dog API Test", async () => {
       testDogs.map(async (testDog) => {
         const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "GET",
-          headers: headers(testDog.hostUserToken),
+          headers: headers(testDog.hostUser.token),
         });
         const resBody = await response.json();
         strict.deepStrictEqual(resBody.data.dog, { ...testDog.item, ...testDog.updateItem });
@@ -150,7 +158,7 @@ await test("Dog API Test", async () => {
       testDogs.map(async (testDog) => {
         const response = await fetch(`${url}/${testDog.item.id}`, {
           method: "DELETE",
-          headers: headers(testDog.hostUserToken),
+          headers: headers(testDog.hostUser.token),
         });
         const data = await response.json();
         strict.deepStrictEqual(data.message, "Dog deleted");
@@ -166,7 +174,7 @@ await test("UserDogs API Test", async () => {
       testDogs.map(async (testDog) => {
         const response = await fetch("http://localhost:3000/dog", {
           method: "POST",
-          headers: headers(testDog.hostUserToken),
+          headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.item),
         });
         const responseJson = await response.json();
@@ -177,11 +185,11 @@ await test("UserDogs API Test", async () => {
   });
   await test("UserDogs post Test", async () => {
     await Promise.all(
-      testUserDogItems.map(async (testUserDogItem) => {
+      testUserDogs.map(async (testUserDog) => {
         const response = await fetch(url, {
           method: "POST",
-          headers: headers(testUserDogItem.uid),
-          body: JSON.stringify(testUserDogItem),
+          headers: headers(testUserDog.hostUser.token),
+          body: JSON.stringify(testUserDog.item),
         });
         const responseJson = (await response.json()) as UserDogPOSTResponseBody;
         strict.deepStrictEqual(201, response.status);
@@ -207,7 +215,7 @@ await test("UserDogs API Test", async () => {
       testDogs.map(async (dog) => {
         const response = await fetch(`${url}/dog/${dog.item.id}`, {
           method: "GET",
-          headers: headers(dog.hostUserToken),
+          headers: headers(dog.hostUser.token),
         });
         const resBody = (await response.json()) as UserDogsGETResponseBody;
         const uids = resBody.data.map((user) => user.uid);
