@@ -17,13 +17,21 @@ export type UserDogsGETDogsRequestParams = {
   uid: string;
 };
 
-export type UserDogsGETResponseBody = {
+export type UserDogsGETUsersResponseBody = {
   message: string;
   data: {
-    uid: string;
-    dogId: string;
-    isAccepted: boolean;
-  }[];
+    users: { uid: string }[];
+  };
+};
+
+export type UserDogsGETDogsResponseBody = {
+  message: string;
+  data: {
+    dogs: {
+      dogId: string;
+      hostUid: string;
+    }[];
+  };
 };
 
 // PUT
@@ -48,4 +56,11 @@ export type UserDogsDELETERequestParams = {
 
 export type UserDogsDELETEResponseBody = {
   message: string;
+};
+
+// DynamoDB
+export type UserDogsTableItems = {
+  uid: string;
+  dogId: string;
+  isAccepted: boolean;
 };

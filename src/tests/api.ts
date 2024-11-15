@@ -8,7 +8,8 @@ import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
 import {
   UserDogPOSTRequestBody,
   UserDogPOSTResponseBody,
-  UserDogsGETResponseBody,
+  UserDogsGETDogsResponseBody,
+  UserDogsGETUsersResponseBody,
   UserDogPUTRequestBody,
   UserDogPUTResponseBody,
   UserDogsDELETERequestParams,
@@ -211,7 +212,6 @@ await test("UserDogs API Test", async () => {
           headers: headers(testUserDog.hostUser.token),
           body: JSON.stringify(testUserDog.item),
         });
-        const responseJson = (await response.json()) as UserDogPOSTResponseBody;
         strict.deepStrictEqual(201, response.status);
       })
     );
@@ -223,8 +223,8 @@ await test("UserDogs API Test", async () => {
           method: "GET",
           headers: headers(user.token),
         });
-        const resBody = (await response.json()) as UserDogsGETResponseBody;
-        const dogIds = resBody.data.map((dog) => dog.dogId);
+        const resBody = (await response.json()) as UserDogsGETDogsResponseBody;
+        const dogIds = resBody.data.dogs.map((dog) => dog.dogId);
         strict.deepStrictEqual(dogIds.sort(), user.accessibleDogIds.sort());
       })
     );
@@ -237,8 +237,8 @@ await test("UserDogs API Test", async () => {
           method: "GET",
           headers: headers(dog.hostUser.token),
         });
-        const resBody = (await response.json()) as UserDogsGETResponseBody;
-        const uids = resBody.data.map((user) => user.uid);
+        const resBody = (await response.json()) as UserDogsGETUsersResponseBody;
+        const uids = resBody.data.users.map((user) => user.uid);
         strict.deepStrictEqual(uids.sort(), dog.accessibleUsers.sort());
       })
     );

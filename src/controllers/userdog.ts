@@ -5,6 +5,7 @@ import {
   UserDogPUTRequestBody,
   UserDogPUTRequestParams,
   UserDogsDELETERequestParams,
+  UserDogsTableItems,
 } from "../types/userdog.js";
 import { userDogModel } from "../models/userdog.js";
 
@@ -22,8 +23,12 @@ export const userdogController = {
   async readUsers(req: Request, res: Response) {
     try {
       const reqParams = req.params as UserDogsGETUsersRequestParams;
-      const userdog = await userDogModel.getUsersFromDogId(reqParams.dogId);
-      res.status(200).json({ userdog });
+      const userdogs = (await userDogModel.getUsersFromDogId(
+        reqParams.dogId
+      )) as UserDogsTableItems[];
+      res
+        .status(200)
+        .json({ message: "OK", data: { users: userdogs.map((userdog) => userdog.uid) } });
     } catch (e) {
       res.status(404).json({ message: "userdog not found" });
     }
@@ -32,8 +37,15 @@ export const userdogController = {
   async readDogs(req: Request, res: Response) {
     try {
       const reqParams = req.params as {};
-      const userdogs = await userDogModel.getDogsFromUid(res.locals.uid);
-      res.status(200).json({ userdogs });
+      const userdogs = (await userDogModel.getDogsFromUid(res.locals.uid)) as UserDogsTableItems[];
+      res.status(200).json({
+        message: "OK",
+        data: {
+          dogs: userdogs.map((userdog) => {
+            userdog.dogId;
+          }),
+        },
+      });
     } catch (e) {
       res.status(404).json({ message: "userdogs not found" });
     }
