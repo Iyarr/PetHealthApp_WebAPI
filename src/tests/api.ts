@@ -53,7 +53,7 @@ const testDogs = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
   };
   const id = randomUUID();
   const hostUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
-  const hostUid = testUsers[hostUidIndex];
+  const hostUid = testUsers[hostUidIndex].user.user.uid;
   return {
     // アクセスを許可したユーザーのIDを格納
     accessibleUsers: [],
