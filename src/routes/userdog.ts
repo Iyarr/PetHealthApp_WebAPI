@@ -5,6 +5,6 @@ export const userdogRouter = Router();
 
 userdogRouter.post("/", userdogController.create);
 userdogRouter.get("/dog/:id", userdogController.readUsers);
-userdogRouter.get("/user", userdogController.readDogs);
+userdogRouter.get("/user/:uid", userdogController.readDogs);
 userdogRouter.put("/dog/:id/:uid", userdogController.update);
 userdogRouter.delete("/dog/:id/:uid", userdogController.delete);

@@ -11,7 +11,12 @@ import { userDogModel } from "../models/userdog.js";
 
 export const userdogController = {
   async create(req: Request, res: Response) {
-    const userdog = { ...(req.body as UserDogPOSTRequestBody), ownerUid: res.locals.uid };
+    const userdog = {
+      ...(req.body as UserDogPOSTRequestBody),
+      ownerUid: res.locals.uid,
+      isAccepted: false,
+    };
+    console.log("Req:", userdog);
     try {
       await userDogModel.postItemCommand<UserDogPOSTRequestBody>(userdog);
       res.status(201).json({ message: "userdog created" });
@@ -36,8 +41,8 @@ export const userdogController = {
 
   async readDogs(req: Request, res: Response) {
     try {
-      const reqParams = req.params as {};
-      const userdogs = (await userDogModel.getDogsFromUid(res.locals.uid)) as UserDogsTableItems[];
+      const reqParams = req.params as { uid: string };
+      const userdogs = (await userDogModel.getDogsFromUid(reqParams.uid)) as UserDogsTableItems[];
       res.status(200).json({
         message: "OK",
         data: {

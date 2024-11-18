@@ -21,9 +21,9 @@ sleep 5
 if [ "$1" == "unit" ]; then
   find dist/tests/unit -name '*.js' | xargs node --test
 elif [ "$1" == "api" ]; then
-  nohup npm start >> result.txt 2>&1 &
+  nohup npm start > result.txt 2>&1 &
   bpid=$!
-  sleep 10
+  sleep 5
   node --test dist/tests/api.js
   kill $bpid
 fi

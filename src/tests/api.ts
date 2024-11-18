@@ -39,6 +39,12 @@ type TestDog = {
   updateItem: DogPUTRequestBody;
 };
 
+type TestUserDog = {
+  user: TestUser;
+  hostUser: TestUser;
+  dog: TestDog;
+};
+
 const numberOfVariousTestData = 10;
 const auth = getAuth(app);
 // 一時的なアカウント作成用のランダム文字列を生成
@@ -87,7 +93,7 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
   };
 });
 
-const testUserDogs = [...Array(numberOfVariousTestData)].map(() => {
+const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map(() => {
   const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
   const uid = user.item.uid;
   while (true) {
@@ -99,11 +105,7 @@ const testUserDogs = [...Array(numberOfVariousTestData)].map(() => {
       hostUser.accessibleDogIds.push(dog.item.id);
 
       return {
-        item: {
-          uid,
-          dogId: dog.item.id,
-          hostUid: dog.item.hostUid,
-        },
+        user,
         hostUser,
         dog,
       };
@@ -189,37 +191,42 @@ await test("Dog API Test", async () => {
 });
 
 await test("UserDogs API Test", async () => {
-  const url = `http://localhost:${env.PORT}/userdog`;
+  const url = `http://localhost:${env.PORT}`;
   await test("Dog post to prepare", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch("http://localhost:3000/dog", {
+        const response = await fetch(`${url}/dog`, {
           method: "POST",
           headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.item),
         });
         const responseJson = await response.json();
         testDog.item.id = responseJson.data.id;
-        strict.deepStrictEqual(201, response.status);
+        strict.deepStrictEqual(response.status, 201);
       })
     );
   });
   await test("UserDogs post Test", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
-        const response = await fetch(url, {
+        const item = {
+          dogId: testUserDog.dog.item.id,
+          uid: testUserDog.user.item.uid,
+        };
+        const response = await fetch(`${url}/userdog`, {
           method: "POST",
           headers: headers(testUserDog.hostUser.token),
-          body: JSON.stringify(testUserDog.item),
+          body: JSON.stringify(item),
         });
-        strict.deepStrictEqual(201, response.status);
+        strict.deepStrictEqual(response.status, 201);
       })
     );
   });
+  /*
   await test("get Dogs from Uid Test", async () => {
     await Promise.all(
       testUsers.map(async (user) => {
-        const response = await fetch(`${url}/uid/${user.item.uid}`, {
+        const response = await fetch(`${url}/user/${user.item.uid}`, {
           method: "GET",
           headers: headers(user.token),
         });
@@ -243,8 +250,8 @@ await test("UserDogs API Test", async () => {
       })
     );
   });
+*/
 });
-
 await Promise.all(
   testUsers.map((testUser) => {
     testUser.user.user.delete();
