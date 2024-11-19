@@ -3,7 +3,7 @@ import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { UserDogsDELETERequestParams } from "../types/userdog.js";
 import { UserDogsTableItems } from "../types/userdog.js";
-import { userDogsTablePK } from "../common/dynamodb.js";
+import { userDogsTablePK } from "../common/adynamodb.js";
 
 class UserDogs extends Model {
   constructor() {
