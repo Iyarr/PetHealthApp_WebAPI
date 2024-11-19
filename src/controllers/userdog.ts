@@ -15,9 +15,10 @@ export const userdogController = {
       ...(req.body as UserDogPOSTRequestBody),
       ownerUid: res.locals.uid as string,
       isAccepted: false,
+      isAnswered: false,
     };
     try {
-      await userDogModel.postItemCommand<UserDogPOSTRequestBody>(userdog);
+      await userDogModel.postItemCommand<UserDogsTableItems>(userdog);
       res.status(201).json({ message: "userdog created" });
     } catch (e) {
       res.status(400).json({ message: e.message });

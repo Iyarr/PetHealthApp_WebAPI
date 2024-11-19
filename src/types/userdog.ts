@@ -1,3 +1,4 @@
+import { User } from "firebase/auth";
 import { userDogsTablePK, userDogsTableItems } from "../common/dynamodb.js";
 import { ResponseBody, ResponseOnlyMessage } from "./utils.js";
 
@@ -36,6 +37,7 @@ export type UserDogPUTResponseBody = ResponseOnlyMessage;
 
 // DELETE
 type UserDogsDELETEReqBodyKeyType = (typeof userDogsTablePK)[number];
+
 export type UserDogsDELETERequestParams = {
   [K in UserDogsDELETEReqBodyKeyType]: string;
 };
@@ -43,8 +45,13 @@ export type UserDogsDELETERequestParams = {
 export type UserDogsDELETEResponseBody = ResponseOnlyMessage;
 
 // DynamoDB
-const UserDogsAllItems = [...userDogsTableItems, ...userDogsTablePK];
-type UerDogsTableItemsKeyType = (typeof UserDogsAllItems)[number];
-export type UserDogsTableItems = {
-  [K in UerDogsTableItemsKeyType]: string;
+type UserDogsTablePKKeyType = (typeof userDogsTablePK)[number];
+type UserDogsTableItemsKeyType = (typeof userDogsTableItems)[number];
+type UserDogsPKObjectType = {
+  [K in UserDogsTablePKKeyType]: string;
 };
+type UserDogsItemsObjectType = {
+  [K in UserDogsTableItemsKeyType]: boolean;
+};
+
+export type UserDogsTableItems = UserDogsPKObjectType & UserDogsItemsObjectType;
