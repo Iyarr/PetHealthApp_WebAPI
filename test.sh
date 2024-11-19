@@ -19,6 +19,7 @@ sleep 1
 node dist/tests/init.js
 sleep 1
 if [ "$1" == "unit" ]; then
+  find dist/common -name '*.js'
   find dist/tests/unit -name '*.js' | xargs node --test
 elif [ "$1" == "api" ]; then
   nohup npm start > result.txt 2>&1 &
