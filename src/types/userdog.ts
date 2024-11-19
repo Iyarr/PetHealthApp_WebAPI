@@ -1,4 +1,4 @@
-import { userDogsTablePK, userDogsTableItems } from "../common/adynamodb.js";
+import { userDogsTablePK, userDogsTableItems } from "../common/dynamodb.js";
 import { ResponseBody, ResponseOnlyMessage } from "./utils.js";
 
 // POST
