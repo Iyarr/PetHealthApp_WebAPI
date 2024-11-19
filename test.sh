@@ -15,6 +15,7 @@ docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
   -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
 
 npm run build
+find dist/ -name '*.js'
 sleep 1
 node dist/tests/init.js
 sleep 1
