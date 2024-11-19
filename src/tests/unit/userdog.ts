@@ -6,7 +6,6 @@ import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
 import { DogPOSTRequestBody, DogPUTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
-import { userDogsTableItems, userDogsTablePK } from "../../common/dynamodb.js";
 
 const numberOfDataSpecies = 10;
 const numberOfUserDogs = 30;
@@ -25,8 +24,6 @@ type TestDog = {
   item: TestDogItem;
   updateItem: DogPUTRequestBody;
 };
-
-type TestUserDog = UserDogsTableItems;
 
 const testUsers = [...Array(numberOfDataSpecies).keys()].map((i: number) => {
   return {
@@ -60,7 +57,7 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
   };
 });
 
-const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map(() => {
+const testUserDogs: UserDogsTableItems[] = [...Array(numberOfVariousTestData)].map(() => {
   const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
   const uid = user.uid;
   while (true) {

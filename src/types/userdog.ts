@@ -1,4 +1,3 @@
-import { User } from "firebase/auth";
 import { userDogsTablePK, userDogsTableItems } from "../common/dynamodb.js";
 import { ResponseBody, ResponseOnlyMessage } from "./utils.js";
 
