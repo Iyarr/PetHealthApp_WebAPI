@@ -2,7 +2,8 @@ import { QueryCommand, DeleteItemCommand, PutItemCommand } from "@aws-sdk/client
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { UserDogsDELETERequestParams } from "../types/userdog.js";
-import { UserDogsTablePK } from "../common/Dynamodb.js";
+import { UserDogsTableItems } from "../types/userdog.js";
+import { userDogsTableItems, userDogsTablePK } from "../common/dynamodb.js";
 
 class UserDogs extends Model {
   constructor() {
@@ -49,7 +50,10 @@ class UserDogs extends Model {
       },
     });
     const result = await DBClient.send(command);
-    return result.Items.map((item) => this.formatItemFromCommand(item));
+    const items = result.Items.map((item) =>
+      this.formatItemFromCommand(item)
+    ) as UserDogsTableItems[];
+    return items;
   }
 
   async getUsersFromDogId(dogId: string) {
@@ -64,22 +68,21 @@ class UserDogs extends Model {
       },
     });
     const result = await DBClient.send(command);
-    return result.Items.map((item) => this.formatItemFromCommand(item));
+    const items = result.Items.map((item) =>
+      this.formatItemFromCommand(item)
+    ) as UserDogsTableItems[];
+    return items;
   }
 
   async update(dogId: string, uid: string, isAccepted: boolean) {
     const command = new PutItemCommand({
       TableName: this.tableName,
-      Item: {
-        uid: this.createAttributeValue(uid),
-        dogId: this.createAttributeValue(dogId),
-        isAccepted: this.createAttributeValue(isAccepted),
-      },
-      ConditionExpression: "attribute_exists(#uid) AND attribute_exists(#dogId)",
-      ExpressionAttributeNames: {
-        "#uid": "uid",
-        "#dogId": "dogId",
-      },
+      Item: this.formatItemForCommand({ dogId, uid, isAccepted }),
+      ConditionExpression: userDogsTablePK.map((key) => `attribute_exists(#${key})`).join(" AND "),
+      ExpressionAttributeNames: userDogsTablePK.reduce((acc, key) => {
+        acc[`#${key}`] = key;
+        return acc;
+      }, {}),
     });
     const result = await DBClient.send(command);
   }

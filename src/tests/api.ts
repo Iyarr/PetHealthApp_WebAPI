@@ -101,9 +101,6 @@ const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map(() =
     const dog = testDogs[dogIndex];
     const hostUser = dog.hostUser;
     if (hostUser.item.uid !== uid && !dog.accessibleUsers.includes(uid)) {
-      dog.accessibleUsers.push(uid);
-      hostUser.accessibleDogIds.push(dog.item.id);
-
       return {
         user,
         hostUser,
@@ -213,6 +210,8 @@ await test("UserDogs API Test", async () => {
           dogId: testUserDog.dog.item.id,
           uid: testUserDog.user.item.uid,
         };
+        testUserDog.user.accessibleDogIds.push(testUserDog.dog.item.id);
+        testUserDog.dog.accessibleUsers.push(testUserDog.user.item.uid);
         const response = await fetch(`${url}/userdog`, {
           method: "POST",
           headers: headers(testUserDog.hostUser.token),
@@ -222,17 +221,17 @@ await test("UserDogs API Test", async () => {
       })
     );
   });
-  /*
+
   await test("get Dogs from Uid Test", async () => {
     await Promise.all(
       testUsers.map(async (user) => {
-        const response = await fetch(`${url}/user/${user.item.uid}`, {
+        const response = await fetch(`${url}/userdog/dogs`, {
           method: "GET",
           headers: headers(user.token),
         });
-        const resBody = (await response.json()) as UserDogsGETDogsResponseBody;
-        const dogIds = resBody.data.dogs.map((dog) => dog.dogId);
-        strict.deepStrictEqual(dogIds.sort(), user.accessibleDogIds.sort());
+        const resBody: UserDogsGETDogsResponseBody = await response.json();
+        const dogs = resBody.data.dogs;
+        strict.deepStrictEqual(user.accessibleDogIds.sort(), dogs.sort());
       })
     );
   });
@@ -240,17 +239,16 @@ await test("UserDogs API Test", async () => {
   await test("get Users from DogId Test", async () => {
     await Promise.all(
       testDogs.map(async (dog) => {
-        const response = await fetch(`${url}/dog/${dog.item.id}`, {
+        const response = await fetch(`${url}/userdog/users/${dog.item.id}`, {
           method: "GET",
           headers: headers(dog.hostUser.token),
         });
-        const resBody = (await response.json()) as UserDogsGETUsersResponseBody;
-        const uids = resBody.data.users.map((user) => user.uid);
-        strict.deepStrictEqual(uids.sort(), dog.accessibleUsers.sort());
+        const resBody: UserDogsGETUsersResponseBody = await response.json();
+        const uids = resBody.data.users;
+        strict.deepStrictEqual(dog.accessibleUsers.sort(), uids.sort());
       })
     );
   });
-*/
 });
 await Promise.all(
   testUsers.map((testUser) => {

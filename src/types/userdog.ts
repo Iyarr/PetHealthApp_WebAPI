@@ -1,66 +1,50 @@
+import { userDogsTablePK, userDogsTableItems } from "../common/dynamodb.js";
+import { ResponseBody, ResponseOnlyMessage } from "./utils.js";
+
 // POST
+type UserDogPOSTReqBodyKeyType = (typeof userDogsTablePK)[number];
 export type UserDogPOSTRequestBody = {
-  uid: string;
-  dogId: string;
+  [K in UserDogPOSTReqBodyKeyType]: string;
 };
 
-export type UserDogPOSTResponseBody = {
-  message: string;
-};
+export type UserDogPOSTResponseBody = ResponseOnlyMessage;
 
 // GET
 export type UserDogsGETUsersRequestParams = {
   dogId: string;
 };
 
-export type UserDogsGETDogsRequestParams = {
-  uid: string;
-};
+export type UserDogsGETUsersResponseBody = ResponseBody<{
+  users: string[];
+}>;
 
-export type UserDogsGETUsersResponseBody = {
-  message: string;
-  data: {
-    users: { uid: string }[];
-  };
-};
-
-export type UserDogsGETDogsResponseBody = {
-  message: string;
-  data: {
-    dogs: {
-      dogId: string;
-      hostUid: string;
-    }[];
-  };
-};
+export type UserDogsGETDogsResponseBody = ResponseBody<{
+  dogs: string[];
+}>;
 
 // PUT
+type UserDogPUTReqBodyKeyType = (typeof userDogsTablePK)[number];
 export type UserDogPUTRequestParams = {
-  uid: string;
-  id: string;
+  [K in UserDogPUTReqBodyKeyType]: string;
 };
 
 export type UserDogPUTRequestBody = {
-  isAccepted?: boolean;
+  isAccepted: boolean;
 };
 
-export type UserDogPUTResponseBody = {
-  message: string;
-};
+export type UserDogPUTResponseBody = ResponseOnlyMessage;
 
 // DELETE
+type UserDogsDELETEReqBodyKeyType = (typeof userDogsTablePK)[number];
 export type UserDogsDELETERequestParams = {
-  uid: string;
-  id: string;
+  [K in UserDogsDELETEReqBodyKeyType]: string;
 };
 
-export type UserDogsDELETEResponseBody = {
-  message: string;
-};
+export type UserDogsDELETEResponseBody = ResponseOnlyMessage;
 
 // DynamoDB
+const UserDogsAllItems = [...userDogsTableItems, ...userDogsTablePK];
+type UerDogsTableItemsKeyType = (typeof UserDogsAllItems)[number];
 export type UserDogsTableItems = {
-  uid: string;
-  dogId: string;
-  isAccepted: boolean;
+  [K in UerDogsTableItemsKeyType]: string;
 };
