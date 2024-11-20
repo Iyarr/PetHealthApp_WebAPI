@@ -48,6 +48,9 @@ class UserDogs extends Model {
           AttributeValueList: [this.createAttributeValue(uid)],
         },
       },
+      ExpressionAttributeNames: { "#isAccepted": "isAccepted" },
+      ExpressionAttributeValues: { ":isAccepted": { BOOL: true } },
+      FilterExpression: "#isAccepted = :isAccepted",
     });
     const result = await DBClient.send(command);
     const items = result.Items.map((item) =>
@@ -66,6 +69,9 @@ class UserDogs extends Model {
           AttributeValueList: [this.createAttributeValue(dogId)],
         },
       },
+      ExpressionAttributeNames: { "#isAccepted": "isAccepted" },
+      ExpressionAttributeValues: { ":isAccepted": { BOOL: true } },
+      FilterExpression: "#isAccepted = :isAccepted",
     });
     const result = await DBClient.send(command);
     const items = result.Items.map((item) =>
@@ -74,15 +80,15 @@ class UserDogs extends Model {
     return items;
   }
 
-  async update(dogId: string, uid: string, isAccepted: boolean) {
+  async update<T extends object>(item: T) {
     const command = new PutItemCommand({
       TableName: this.tableName,
-      Item: this.formatItemForCommand({ dogId, uid, isAccepted }),
+      Item: this.formatItemForCommand(item),
       ConditionExpression: userDogsTablePK.map((key) => `attribute_exists(#${key})`).join(" AND "),
-      ExpressionAttributeNames: userDogsTablePK.reduce((acc, key) => {
-        acc[`#${key}`] = key;
-        return acc;
-      }, {}),
+      ExpressionAttributeNames: {
+        "#dogId": "dogId",
+        "#uid": "uid",
+      },
     });
     const result = await DBClient.send(command);
   }

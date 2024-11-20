@@ -57,9 +57,11 @@ export const userdogController = {
       ...(req.params as UserDogPUTRequestParams),
       ownerUid: res.locals.uid as string,
       ...(req.body as UserDogPUTRequestBody),
+      isAnswered: true,
     };
+    console.log(userdog);
     try {
-      await userDogModel.update(userdog.dogId, userdog.uid, userdog.isAccepted);
+      await userDogModel.update(userdog);
       res.status(200).json({ message: "userdog updated" });
     } catch (e) {
       res.status(400).json({ message: e.message });

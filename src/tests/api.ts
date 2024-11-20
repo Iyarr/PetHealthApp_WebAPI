@@ -14,6 +14,7 @@ import {
   UserDogPUTResponseBody,
   UserDogsDELETERequestParams,
   UserDogsDELETEResponseBody,
+  UserDogsTableItems,
 } from "../types/userdog.js";
 import { env } from "../utils/env.js";
 
@@ -43,9 +44,10 @@ type TestUserDog = {
   user: TestUser;
   hostUser: TestUser;
   dog: TestDog;
+  updateItem: { isAccepted: boolean };
 };
 
-const numberOfVariousTestData = 10;
+const numberOfVariousTestData = 30;
 const auth = getAuth(app);
 // 一時的なアカウント作成用のランダム文字列を生成
 const testUsers: TestUser[] = await Promise.all(
@@ -93,7 +95,7 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
   };
 });
 
-const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map(() => {
+const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map((i: number) => {
   const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
   const uid = user.item.uid;
   while (true) {
@@ -105,6 +107,9 @@ const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map(() =
         user,
         hostUser,
         dog,
+        updateItem: {
+          isAccepted: i % 2 === 0 ? true : false,
+        },
       };
     }
   }
@@ -210,14 +215,32 @@ await test("UserDogs API Test", async () => {
           dogId: testUserDog.dog.item.id,
           uid: testUserDog.user.item.uid,
         };
-        testUserDog.user.accessibleDogIds.push(testUserDog.dog.item.id);
-        testUserDog.dog.accessibleUsers.push(testUserDog.user.item.uid);
+        if (testUserDog.updateItem.isAccepted) {
+          testUserDog.user.accessibleDogIds.push(testUserDog.dog.item.id);
+          testUserDog.dog.accessibleUsers.push(testUserDog.user.item.uid);
+        }
         const response = await fetch(`${url}/userdog`, {
           method: "POST",
           headers: headers(testUserDog.hostUser.token),
           body: JSON.stringify(item),
         });
         strict.deepStrictEqual(response.status, 201);
+      })
+    );
+  });
+
+  await test("UserDogs put Test", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        const response = await fetch(
+          `${url}/userdog/${testUserDog.dog.item.id}/${testUserDog.user.item.uid}`,
+          {
+            method: "PUT",
+            headers: headers(testUserDog.hostUser.token),
+            body: JSON.stringify(testUserDog.updateItem),
+          }
+        );
+        strict.deepStrictEqual(response.status, 200);
       })
     );
   });
