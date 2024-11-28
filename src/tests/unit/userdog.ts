@@ -7,16 +7,11 @@ import { UserDogsTableItems } from "../../types/userdog.js";
 import { DogPOSTRequestBody, DogPUTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 
-const numberOfDataSpecies = 10;
-const numberOfUserDogs = 30;
-const numberOfVariousTestData = 10;
-
-const sizes = ["small", "medium", "big"];
-const genders = ["male", "female"];
+const numberOfVariousTestData = 30;
 
 type TestDogItem = {
   id: string;
-  hostUid: string;
+  ownerUid: string;
 } & DogPOSTRequestBody;
 
 type TestDog = {
@@ -25,7 +20,12 @@ type TestDog = {
   updateItem: DogPUTRequestBody;
 };
 
-const testUsers = [...Array(numberOfDataSpecies).keys()].map((i: number) => {
+type TestUserDog = {
+  item: UserDogsTableItems;
+  updateItem: { isAccepted: boolean };
+};
+
+const testUsers = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
   return {
     uid: i.toString(),
     // アクセス可能な犬のIDを格納
@@ -40,14 +40,14 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
     size: dog3Sizes[i % 3],
   };
   const id = randomUUID();
-  const hostUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
-  const hostUid = testUsers[hostUidIndex].uid;
+  const ownerUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
+  const ownerUid = testUsers[ownerUidIndex].uid;
   return {
     // アクセスを許可したユーザーのIDを格納
     accessibleUsers: [] as string[],
     item: {
       id,
-      hostUid,
+      ownerUid,
       ...reqBody,
     },
     updateItem: {
@@ -57,22 +57,33 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
   };
 });
 
-const testUserDogs: UserDogsTableItems[] = [...Array(numberOfVariousTestData)].map(() => {
+const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map((i: number) => {
   const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
   const uid = user.uid;
   while (true) {
     const dogIndex = Math.floor(Math.random() * numberOfVariousTestData);
     const dog = testDogs[dogIndex];
-    const hostUid = dog.item.hostUid;
-    if (hostUid !== uid && !dog.accessibleUsers.includes(uid)) {
-      dog.accessibleUsers.push(uid);
-      user.accessibleDogIds.push(dog.item.id);
+    const ownerUid = dog.item.ownerUid;
+    if (ownerUid !== uid && !dog.accessibleUsers.includes(uid)) {
+      const updateItem = { isAccepted: false };
+      if (i % 2) {
+        updateItem.isAccepted = true;
+        dog.accessibleUsers.push(uid);
+        user.accessibleDogIds.push(dog.item.id);
+      }
       return {
-        uid,
-        hostUid,
-        dogId: dog.item.id,
-        isAccepted: false,
-        isAnswered: false,
+        item: {
+          uid,
+          ownerUid,
+          dogId: dog.item.id,
+          isAccepted: false,
+          isAnswered: false,
+        },
+        updateItem: {
+          uid,
+          dogId: dog.item.id,
+          ...updateItem,
+        },
       };
     }
   }
@@ -91,7 +102,16 @@ await test("UserDog Test", async (t) => {
   await test("Create UserDog", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
-        await userDogModel.postItemCommand<UserDogsTableItems>(testUserDog);
+        await userDogModel.postItemCommand<UserDogsTableItems>(testUserDog.item);
+      })
+    );
+    strict.ok(true);
+  });
+
+  await test("Update UserDog", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        await userDogModel.update({ ...testUserDog.item, ...testUserDog.updateItem });
       })
     );
     strict.ok(true);
