@@ -136,4 +136,14 @@ await test("UserDog Test", async (t) => {
       })
     );
   });
+
+  await test("Delete UserDog by DogId", async () => {
+    await Promise.all(
+      testDogs.map(async (dog) => {
+        await userDogModel.deleteUserDogsWithDogId(dog.item.id);
+        const output = await userDogModel.getUsersFromDogId(dog.item.id);
+        strict.deepStrictEqual(output.length, 0);
+      })
+    );
+  });
 });

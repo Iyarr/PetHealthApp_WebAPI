@@ -121,11 +121,26 @@ const headers = (token: string) => ({
 });
 
 await test("Dog API Test", async () => {
-  const url = `http://localhost:${env.PORT}/dog`;
+  const url = `http://localhost:${env.PORT}`;
+  await test("UserDog post to prepare", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        const item: UserDogPOSTRequestBody = {
+          uid: testUserDog.user.item.uid,
+          dogId: testUserDog.dog.item.id,
+        };
+        await fetch(`${url}/userdog`, {
+          method: "POST",
+          headers: headers(testUserDog.hostUser.token),
+          body: JSON.stringify(item),
+        });
+      })
+    );
+  });
   await test("Dog post Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(url, {
+        const response = await fetch(`${url}/dog`, {
           method: "POST",
           headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.item),
@@ -140,7 +155,7 @@ await test("Dog API Test", async () => {
   await test("Dog get Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.item.id}`, {
+        const response = await fetch(`${url}/dog/${testDog.item.id}`, {
           method: "GET",
           headers: headers(testDog.hostUser.token),
         });
@@ -152,7 +167,7 @@ await test("Dog API Test", async () => {
   await test("Dog put Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.item.id}`, {
+        const response = await fetch(`${url}/dog/${testDog.item.id}`, {
           method: "PUT",
           headers: headers(testDog.hostUser.token),
           body: JSON.stringify(testDog.updateItem),
@@ -165,7 +180,7 @@ await test("Dog API Test", async () => {
   await test("Dog read after put Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.item.id}`, {
+        const response = await fetch(`${url}/dog/${testDog.item.id}`, {
           method: "GET",
           headers: headers(testDog.hostUser.token),
         });
@@ -178,15 +193,39 @@ await test("Dog API Test", async () => {
       })
     );
   });
+  await test("Userdog read before Dog delete Test", async () => {
+    await Promise.all(
+      testDogs.map(async (testDog) => {
+        const response = await fetch(`${url}/userdog/users/${testDog.item.id}`, {
+          method: "GET",
+          headers: headers(testDog.hostUser.token),
+        });
+        const resBody = await response.json();
+        strict.deepStrictEqual(resBody.data.users, testDog.accessibleUsers);
+      })
+    );
+  });
   await test("Dog delete Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const response = await fetch(`${url}/${testDog.item.id}`, {
+        const response = await fetch(`${url}/dog/${testDog.item.id}`, {
           method: "DELETE",
           headers: headers(testDog.hostUser.token),
         });
         const data = await response.json();
         strict.deepStrictEqual(data.message, "Dog deleted");
+      })
+    );
+  });
+  await test("UserDog read after Dog delete Test", async () => {
+    await Promise.all(
+      testDogs.map(async (testDog) => {
+        const response = await fetch(`${url}/userdog/users/${testDog.item.id}`, {
+          method: "GET",
+          headers: headers(testDog.hostUser.token),
+        });
+        const resBody = await response.json();
+        strict.deepStrictEqual(resBody.data.users, []);
       })
     );
   });

@@ -109,6 +109,20 @@ class UserDogs extends Model {
     const result = await DBClient.send(command);
     return this.formatItemFromCommand(result.Attributes);
   }
+
+  async deleteUserDogsWithDogId(dogId: string) {
+    const command = new QueryCommand({
+      TableName: this.tableName,
+      IndexName: "dogIdIndex",
+      KeyConditions: {
+        dogId: {
+          ComparisonOperator: "EQ",
+          AttributeValueList: [this.createAttributeValue(dogId)],
+        },
+      },
+    });
+    const output = await DBClient.send(command);
+  }
 }
 
 export const userDogModel = new UserDogs();
