@@ -7,14 +7,8 @@ import { dogGenders, dog3Sizes } from "../common/dogs.js";
 import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
 import {
   UserDogPOSTRequestBody,
-  UserDogPOSTResponseBody,
   UserDogsGETDogsResponseBody,
   UserDogsGETUsersResponseBody,
-  UserDogPUTRequestBody,
-  UserDogPUTResponseBody,
-  UserDogsDELETERequestParams,
-  UserDogsDELETEResponseBody,
-  UserDogsTableItems,
 } from "../types/userdog.js";
 import { env } from "../utils/env.js";
 
@@ -47,7 +41,8 @@ type TestUserDog = {
   updateItem: { isAccepted: boolean };
 };
 
-const numberOfVariousTestData = 30;
+// 多すぎるとFirebase Authの制限に引っかかる
+const numberOfVariousTestData = 10;
 const auth = getAuth(app);
 // 一時的なアカウント作成用のランダム文字列を生成
 const testUsers: TestUser[] = await Promise.all(
@@ -263,6 +258,9 @@ await test("UserDogs API Test", async () => {
           headers: headers(testUserDog.hostUser.token),
           body: JSON.stringify(item),
         });
+        if (response.status !== 201) {
+          console.log(await response.json());
+        }
         strict.deepStrictEqual(response.status, 201);
       })
     );
