@@ -7,7 +7,7 @@ import { UserDogsTableItems } from "../../types/userdog.js";
 import { DogPOSTRequestBody, DogPUTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 
-const numberOfVariousTestData = 30;
+const numberOfVariousTestData = 50;
 
 type TestDogItem = {
   id: string;
