@@ -7,7 +7,7 @@ import { UserDogsTableItems } from "../../types/userdog.js";
 import { DogPOSTRequestBody, DogPUTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 
-const numberOfVariousTestData = 30;
+const numberOfVariousTestData = 70;
 
 type TestDogItem = {
   id: string;
@@ -27,7 +27,7 @@ type TestUserDog = {
 
 const testUsers = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
   return {
-    uid: i.toString(),
+    uid: randomUUID() as string,
     // アクセス可能な犬のIDを格納
     accessibleDogIds: [] as string[],
   };
@@ -39,7 +39,7 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
     gender: dogGenders[i % 2],
     size: dog3Sizes[i % 3],
   };
-  const id = randomUUID();
+  const id = randomUUID() as string;
   const ownerUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
   const ownerUid = testUsers[ownerUidIndex].uid;
   return {
@@ -102,7 +102,11 @@ await test("UserDog Test", async (t) => {
   await test("Create UserDog", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
-        await userDogModel.postItemCommand<UserDogsTableItems>(testUserDog.item);
+        try {
+          await userDogModel.postItemCommand<UserDogsTableItems>(testUserDog.item);
+        } catch (e) {
+          strict.fail(e);
+        }
       })
     );
     strict.ok(true);
@@ -133,6 +137,16 @@ await test("UserDog Test", async (t) => {
         const users = await userDogModel.getUsersFromDogId(dog.item.id);
         const uids = users.map((user) => user.uid);
         strict.deepStrictEqual(uids.sort(), dog.accessibleUsers.sort());
+      })
+    );
+  });
+
+  await test("Delete UserDog by DogId", async () => {
+    await Promise.all(
+      testDogs.map(async (dog) => {
+        await userDogModel.deleteUserDogsWithDogId(dog.item.id);
+        const output = await userDogModel.getUsersFromDogId(dog.item.id);
+        strict.deepStrictEqual(output.length, 0);
       })
     );
   });

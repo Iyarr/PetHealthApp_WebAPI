@@ -50,7 +50,7 @@ type UserDogsPKObjectType = {
   [K in UserDogsTablePKKeyType]: string;
 };
 type UserDogsItemsObjectType = {
-  [K in UserDogsTableItemsKeyType]: boolean;
+  [K in UserDogsTableItemsKeyType]: boolean | string;
 };
 
 export type UserDogsTableItems = UserDogsPKObjectType & UserDogsItemsObjectType;

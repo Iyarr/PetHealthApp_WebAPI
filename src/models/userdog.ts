@@ -13,18 +13,18 @@ class UserDogs extends Model {
   async postItemCommand<T extends object>(item: T) {
     // 重複チェックのための条件式を作成
     const expressionAttributeNames: Record<string, string> = {};
-    const conditionExpression = Object.keys(item)
+    const conditionExpression = userDogsTablePK
       .map((key) => {
         expressionAttributeNames[`#${key}`] = key;
-        return `attribute_not_exists(#${key})`;
+        return `(attribute_not_exists(#${key}))`;
       })
-      .join(" AND ");
+      .join(" OR ");
 
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
-      ConditionExpression: conditionExpression,
       ExpressionAttributeNames: expressionAttributeNames,
+      ConditionExpression: conditionExpression,
       ReturnValues: "ALL_OLD",
     });
 
@@ -108,6 +108,20 @@ class UserDogs extends Model {
 
     const result = await DBClient.send(command);
     return this.formatItemFromCommand(result.Attributes);
+  }
+
+  async deleteUserDogsWithDogId(dogId: string) {
+    const command = new QueryCommand({
+      TableName: this.tableName,
+      IndexName: "dogIdIndex",
+      KeyConditions: {
+        dogId: {
+          ComparisonOperator: "EQ",
+          AttributeValueList: [this.createAttributeValue(dogId)],
+        },
+      },
+    });
+    const output = await DBClient.send(command);
   }
 }
 

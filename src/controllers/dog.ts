@@ -1,7 +1,8 @@
-import { json, Request, Response } from "express";
+import { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
+import { userDogModel } from "../models/userdog.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
@@ -46,6 +47,7 @@ export const dogController = {
   async delete(req: Request, res: Response) {
     try {
       await dogModel.deleteItemCommand(req.params.id, res.locals.uid);
+      await userDogModel.deleteUserDogsWithDogId(req.params.id);
       res.status(200).json({ message: "Dog deleted" });
     } catch (e) {
       res.status(400).json({ message: e.message });
