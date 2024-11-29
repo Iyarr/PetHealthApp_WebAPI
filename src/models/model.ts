@@ -47,8 +47,7 @@ export class Model {
       const result = await DBClient.send(command);
       return this.formatItemFromCommand(result.Item);
     } catch (error) {
-      console.log(pk, error);
-      throw new Error("Failed to get response");
+      throw new Error(error);
     }
   }
 
