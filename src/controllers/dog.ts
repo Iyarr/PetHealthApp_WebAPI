@@ -18,10 +18,10 @@ export const dogController = {
     // 許可されていないフィールドのチェック
     for (const field of Object.keys(req.body)) {
       if (!bodys.includes(field)) {
-        return res.status(400).json({ message: `Field ${field} is not allowed` });
+        return res.status(400).json({ message:"Bad Request"});
       }
     }
-
+    
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -62,7 +62,7 @@ export const dogController = {
     // 許可されていないフィールドのチェック
     for (const field of Object.keys(req.body)) {
       if (!bodys.includes(field)) {
-        return res.status(400).json({ message: `Field ${field} is not allowed` });
+        return res.status(400).json({ message: "Bad Request" });
       }
     }
 
