@@ -33,7 +33,7 @@ export const dogController = {
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request", errors: errors.array() });
+      return res.status(400).json({ message: "Bad Request", errors: errors.mapped() });
     }
 
     const id = randomUUID();
@@ -88,7 +88,7 @@ export const dogController = {
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request", errors: errors.array() });
+      return res.status(400).json({ message: "Bad Request", errors: errors.mapped() });
     }
 
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
