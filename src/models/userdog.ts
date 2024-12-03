@@ -80,6 +80,31 @@ class UserDogs extends Model {
     return items;
   }
 
+  async getNotification(ownerUid: string) {
+    const command = new QueryCommand({
+      TableName: this.tableName,
+      IndexName: "uidIndex",
+      KeyConditions: {
+        uid: {
+          ComparisonOperator: "EQ",
+          AttributeValueList: [this.createAttributeValue(ownerUid)],
+        },
+      },
+      ExpressionAttributeNames: {
+        "#isAnswered": "isAnswered",
+      },
+      ExpressionAttributeValues: {
+        ":isAnswered": { BOOL: false },
+      },
+      FilterExpression: "#isAnswered = :isAnswered",
+    });
+    const result = await DBClient.send(command);
+    const items = result.Items.map((item) =>
+      this.formatItemFromCommand(item)
+    ) as UserDogsTableItems[];
+    return items;
+  }
+
   async update<T extends object>(item: T) {
     const command = new PutItemCommand({
       TableName: this.tableName,
