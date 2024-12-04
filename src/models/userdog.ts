@@ -110,6 +110,24 @@ class UserDogs extends Model {
     return items;
   }
 
+  async getUserDogsPKToDeleteDog(dogId: string) {
+    const command = new QueryCommand({
+      TableName: this.tableName,
+      IndexName: "dogIdIndex",
+      KeyConditions: {
+        dogId: {
+          ComparisonOperator: "EQ",
+          AttributeValueList: [this.createAttributeValue(dogId)],
+        },
+      },
+    });
+    const result = await DBClient.send(command);
+    const items = result.Items.map((item) =>
+      this.formatItemFromCommand(item)
+    ) as UserDogsTableItems[];
+    return items;
+  }
+
   async update<T extends object>(item: T) {
     const command = new PutItemCommand({
       TableName: this.tableName,

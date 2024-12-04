@@ -42,14 +42,20 @@ type TestUserDog = {
 };
 
 // 多すぎるとFirebase Authの制限に引っかかる
-const numberOfVariousTestData = 10;
+const numberOfUser = 3;
+const numberOfDogsPerUser = 6;
+const numberOfUserDogsPerUser = 10;
+
+const numberOfDogs = numberOfUser * numberOfDogsPerUser;
+const numberOfUserDogs = numberOfUser * numberOfUserDogsPerUser;
+
 const auth = getAuth(app);
 // 一時的なアカウント作成用のランダム文字列を生成
 const testUsers: TestUser[] = await Promise.all(
-  [...Array(numberOfVariousTestData).keys()].map(async () => {
+  [...Array(numberOfUser).keys()].map(async () => {
     const random = Math.random().toString();
     const email = `${random}@example.com`;
-    const password = randomUUID();
+    const password = randomUUID() as string;
     const user = await createUserWithEmailAndPassword(auth, email, password);
     const token = await user.user.getIdToken();
 
@@ -66,13 +72,13 @@ const testUsers: TestUser[] = await Promise.all(
   })
 );
 
-const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
+const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
   const reqBody: DogPOSTRequestBody = {
     name: i.toString(),
     gender: dogGenders[i % 2],
     size: dog3Sizes[i % 3],
   };
-  const hostUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
+  const hostUidIndex = Math.floor(Math.random() * numberOfUser);
   const hostUid = testUsers[hostUidIndex].user.user.uid;
   return {
     // アクセスを許可したユーザーのIDを格納
@@ -90,11 +96,11 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
   };
 });
 
-const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map((i: number) => {
-  const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
+const testUserDogs: TestUserDog[] = [...Array(numberOfUserDogs)].map((i: number) => {
+  const user = testUsers[Math.floor(Math.random() * numberOfUser)];
   const uid = user.item.uid;
   while (true) {
-    const dogIndex = Math.floor(Math.random() * numberOfVariousTestData);
+    const dogIndex = Math.floor(Math.random() * numberOfDogs);
     const dog = testDogs[dogIndex];
     const hostUser = dog.hostUser;
     if (hostUser.item.uid !== uid && !dog.accessibleUsers.includes(uid)) {
@@ -109,6 +115,9 @@ const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map((i: 
     }
   }
 });
+
+console.log(testDogs.map((dog) => console.log(dog.accessibleUsers)));
+console.log(testUsers.map((userDog) => console.log(userDog.accessibleDogIds)));
 
 const headers = (token: string) => ({
   "Content-Type": "application/json",
