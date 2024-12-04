@@ -48,7 +48,7 @@ export const dogController = {
     try {
       await dogModel.deleteItemCommand(req.params.id, res.locals.uid);
       const userDogs = await userDogModel.getUsersFromDogId(req.params.id);
-      await userDogModel.deleteItems(
+      await userDogModel.deleteItemsWithoutOwnerValidation(
         userDogs.map((userDog) => {
           return {
             dogId: req.params.id,

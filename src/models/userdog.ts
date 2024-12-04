@@ -7,7 +7,7 @@ import {
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { UserDogsTablePK, UserDogsTableItems } from "../types/userdog.js";
-import { userDogsTablePK } from "../common/dynamodb.js";
+import { DynamoDBBatchWriteLimit, userDogsTablePK } from "../common/dynamodb.js";
 
 class UserDogs extends Model {
   constructor() {
@@ -140,7 +140,7 @@ class UserDogs extends Model {
   }
 
   async deleteItemsWithoutOwnerValidation(Items: UserDogsTablePK[]) {
-    const devidedItems = this.slicePKListWithDynamoDBBatchWriteLimit<UserDogsTablePK>(Items);
+    const devidedItems = this.sliceObjectList<UserDogsTablePK>(Items, DynamoDBBatchWriteLimit);
     await Promise.all(
       devidedItems.map(async (items) => {
         const command = new BatchWriteItemCommand({

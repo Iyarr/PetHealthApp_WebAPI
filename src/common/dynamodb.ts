@@ -1,4 +1,8 @@
+// Config
 export const DynamoDBBatchWriteLimit = 25;
+export const DynamoDBBatchGetLimit = 100;
+
+// Tables
 export const dogsTablePK = "id";
 export const dogsTableItems = ["name", "size", "hostUid"];
 export const userDogsTablePK = ["uid", "dogId"] as const;

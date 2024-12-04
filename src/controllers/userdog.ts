@@ -90,7 +90,7 @@ export const userdogController = {
     const params = req.params as UserDogsDELETERequestParams;
     const uid = res.locals.uid as string;
     try {
-      await userDogModel.delete(params, uid);
+      await userDogModel.deleteWithOwnerValidation(params, uid);
       res.status(200).json({ message: "userdog deleted" });
     } catch (e) {
       res.status(400).json({ message: e.message });
