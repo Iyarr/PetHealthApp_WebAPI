@@ -47,7 +47,15 @@ export const dogController = {
   async delete(req: Request, res: Response) {
     try {
       await dogModel.deleteItemCommand(req.params.id, res.locals.uid);
-      await userDogModel.deleteUserDogsWithDogId(req.params.id);
+      const userDogs = await userDogModel.getUsersFromDogId(req.params.id);
+      await userDogModel.deleteItems(
+        userDogs.map((userDog) => {
+          return {
+            dogId: req.params.id,
+            uid: userDog.uid,
+          };
+        })
+      );
       res.status(200).json({ message: "Dog deleted" });
     } catch (e) {
       res.status(400).json({ message: e.message });

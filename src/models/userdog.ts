@@ -1,8 +1,12 @@
-import { QueryCommand, DeleteItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  QueryCommand,
+  DeleteItemCommand,
+  PutItemCommand,
+  BatchWriteItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
-import { UserDogsDELETERequestParams } from "../types/userdog.js";
-import { UserDogsTableItems } from "../types/userdog.js";
+import { UserDogsTablePK, UserDogsTableItems } from "../types/userdog.js";
 import { userDogsTablePK } from "../common/dynamodb.js";
 
 class UserDogs extends Model {
@@ -12,10 +16,12 @@ class UserDogs extends Model {
 
   async postItemCommand<T extends object>(item: T) {
     // 重複チェックのための条件式を作成
-    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeNames = {
+      "#dogId": "dogId",
+      "#uid": "uid",
+    };
     const conditionExpression = userDogsTablePK
       .map((key) => {
-        expressionAttributeNames[`#${key}`] = key;
         return `(attribute_not_exists(#${key}))`;
       })
       .join(" OR ");
@@ -34,7 +40,7 @@ class UserDogs extends Model {
         throw new Error("Existing item updated mistakenly");
       }
     } catch (e) {
-      throw new Error(e.message);
+      throw new Error(e);
     }
   }
 
@@ -99,9 +105,8 @@ class UserDogs extends Model {
       FilterExpression: "#isAnswered = :isAnswered",
     });
     const result = await DBClient.send(command);
-    const items = result.Items.map((item) =>
-      this.formatItemFromCommand(item)
-    ) as UserDogsTableItems[];
+    const items = result.Items.map((item) => this.formatItemFromCommand(item)) as (UserDogsTablePK &
+      UserDogsTableItems)[];
     return items;
   }
 
@@ -118,7 +123,7 @@ class UserDogs extends Model {
     const result = await DBClient.send(command);
   }
 
-  async delete(pk: UserDogsDELETERequestParams, ownerUid: string) {
+  async deleteWithOwnerValidation(pk: UserDogsTablePK, ownerUid: string) {
     const command = new DeleteItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
@@ -131,22 +136,25 @@ class UserDogs extends Model {
       },
     });
 
-    const result = await DBClient.send(command);
-    return this.formatItemFromCommand(result.Attributes);
+    await DBClient.send(command);
   }
 
-  async deleteUserDogsWithDogId(dogId: string) {
-    const command = new QueryCommand({
-      TableName: this.tableName,
-      IndexName: "dogIdIndex",
-      KeyConditions: {
-        dogId: {
-          ComparisonOperator: "EQ",
-          AttributeValueList: [this.createAttributeValue(dogId)],
-        },
-      },
-    });
-    const output = await DBClient.send(command);
+  async deleteItemsWithoutOwnerValidation(Items: UserDogsTablePK[]) {
+    const devidedItems = this.slicePKListWithDynamoDBBatchWriteLimit<UserDogsTablePK>(Items);
+    await Promise.all(
+      devidedItems.map(async (items) => {
+        const command = new BatchWriteItemCommand({
+          RequestItems: {
+            [this.tableName]: items.map((item) => ({
+              DeleteRequest: {
+                Key: this.formatItemForCommand(item),
+              },
+            })),
+          },
+        });
+        await DBClient.send(command);
+      })
+    );
   }
 }
 

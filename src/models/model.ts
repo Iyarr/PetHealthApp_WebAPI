@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
+import { DynamoDBBatchWriteLimit } from "../common/dynamodb.js";
 
 export class Model {
   tableName: string;
@@ -108,5 +109,14 @@ export class Model {
       throw new Error("Could not create AttributeValue");
     }
     return attributeValue;
+  }
+
+  slicePKListWithDynamoDBBatchWriteLimit<T extends object>(items: T[]) {
+    const slicedItems: T[][] = [];
+    for (let i = 0; i < items.length; i += DynamoDBBatchWriteLimit) {
+      slicedItems.push(items.slice(i, i + DynamoDBBatchWriteLimit));
+    }
+    slicedItems.push(items.slice(-1 * (items.length % DynamoDBBatchWriteLimit)));
+    return slicedItems;
   }
 }
