@@ -9,7 +9,7 @@ import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 
 const numberOfUser = 50;
 const numberOfDogsPerUser = 3;
-const numberOfUserDogsPerUser = 5;
+const numberOfUserDogsPerUser = 10;
 
 const numberOfDogs = numberOfUser * numberOfDogsPerUser;
 const numberOfUserDogs = numberOfUser * numberOfUserDogsPerUser;
@@ -64,7 +64,7 @@ const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
   };
 });
 
-const testUserDogs: TestUserDog[] = [...Array(numberOfUserDogs * 3).keys()].map((i: number) => {
+const testUserDogs: TestUserDog[] = [...Array(numberOfUserDogs).keys()].map((i: number) => {
   const user = testUsers[Math.floor(Math.random() * numberOfUser)];
   const uid = user.uid;
   while (true) {
