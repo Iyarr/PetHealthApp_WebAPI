@@ -20,19 +20,12 @@ export const dogController = {
       .run(req);
 
     // 許可されていないフィールドのチェック
-    const extraFields = [];
     for (const field of Object.keys(req.body)) {
       if (!bodys.includes(field)) {
-        extraFields.push(field);
+        return res
+          .status(400)
+          .json({ errors: [{ msg: `Field ${field} is not allowed`, param: field }] });
       }
-    }
-    if (extraFields.length > 0) {
-      return res.status(400).json({
-        errors: extraFields.map((field) => ({
-          msg: `Field ${field} is not allowed`,
-          param: field,
-        })),
-      });
     }
 
     // エラーの取得
@@ -78,19 +71,12 @@ export const dogController = {
       .run(req);
 
     // 許可されていないフィールドのチェック
-    const extraFields = [];
     for (const field of Object.keys(req.body)) {
       if (!bodys.includes(field)) {
-        extraFields.push(field);
+        return res
+          .status(400)
+          .json({ errors: [{ msg: `Field ${field} is not allowed`, param: field }] });
       }
-    }
-    if (extraFields.length > 0) {
-      return res.status(400).json({
-        errors: extraFields.map((field) => ({
-          msg: `Field ${field} is not allowed`,
-          param: field,
-        })),
-      });
     }
 
     // エラーの取得
