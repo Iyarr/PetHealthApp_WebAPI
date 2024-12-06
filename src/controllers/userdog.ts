@@ -37,38 +37,6 @@ export const userdogController = {
     }
   },
 
-  async readDogIds(req: Request, res: Response) {
-    try {
-      const uid = res.locals.uid as string;
-      const userdogs: UserDogsTableItems[] = await userDogModel.getDogsFromUid(uid);
-      res.status(200).json({
-        message: "OK",
-        data: {
-          dogs: userdogs.map((userdog) => userdog.dogId),
-        },
-      });
-    } catch (e) {
-      res.status(404).json({ message: "userdogs not found" });
-    }
-  },
-
-  async readNotification(req: Request, res: Response) {
-    try {
-      const uid = res.locals.uid as string;
-      const userdogs = await userDogModel.getNotification(uid);
-      res.status(200).json({
-        message: "OK",
-        data: {
-          userdogs: userdogs.map((userdog) => ({
-            dogId: userdog.dogId,
-          })),
-        },
-      });
-    } catch (e) {
-      res.status(404).json({ message: e.message });
-    }
-  },
-
   async update(req: Request, res: Response) {
     const userdog = {
       ...(req.params as UserDogPUTRequestParams),

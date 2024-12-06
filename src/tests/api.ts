@@ -44,7 +44,7 @@ type TestUserDog = {
 };
 
 // 多すぎるとFirebase Authの制限に引っかかる
-const numberOfUser = 4;
+const numberOfUser = 6;
 const numberOfDogsPerUser = 3;
 const numberOfUserDogsPerUser = 6;
 
@@ -259,13 +259,15 @@ await test("UserDogs API Test", async () => {
   await test("UserDogs post Test", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
+        const { dog, user } = testUserDog;
         const item = {
-          dogId: testUserDog.dog.item.id,
-          uid: testUserDog.user.item.uid,
+          dogId: dog.item.id,
+          uid: user.item.uid,
         };
+        user.invitedDogIds.push(testUserDog.dog.item.id);
         if (testUserDog.updateItem.isAccepted) {
-          testUserDog.user.acceptedDogIds.push(testUserDog.dog.item.id);
-          testUserDog.dog.memberUids.push(testUserDog.user.item.uid);
+          user.acceptedDogIds.push(dog.item.id);
+          dog.memberUids.push(user.item.uid);
         }
         const response = await fetch(`${url}/userdog`, {
           method: "POST",
@@ -283,13 +285,13 @@ await test("UserDogs API Test", async () => {
   await test("UserDogs get Notification Test", async () => {
     await Promise.all(
       testUsers.map(async (user) => {
-        const response = await fetch(`${url}/userdog/notifi`, {
+        const response = await fetch(`${url}/user/notifi`, {
           method: "GET",
           headers: headers(user.token),
         });
         const resBody = await response.json();
         const dogIds = resBody.data.userdogs.map((userdog: { dogId: string }) => userdog.dogId);
-        strict.deepStrictEqual(dogIds.sort(), user.acceptedDogIds.sort());
+        strict.deepStrictEqual(dogIds.sort(), user.invitedDogIds.sort());
       })
     );
   });
@@ -313,7 +315,7 @@ await test("UserDogs API Test", async () => {
   await test("get Dogs from Uid Test", async () => {
     await Promise.all(
       testUsers.map(async (user) => {
-        const response = await fetch(`${url}/userdog/dogs`, {
+        const response = await fetch(`${url}/user/dogs`, {
           method: "GET",
           headers: headers(user.token),
         });
