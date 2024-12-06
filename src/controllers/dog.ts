@@ -26,19 +26,14 @@ export const dogController = {
     // 許可されていないフィールドのチェック
     for (const field of Object.keys(req.body)) {
       if (!bodys.includes(field)) {
-        return res
-          .status(400)
-          .json({
-            message: "Bad Request",
-            errors: [{ msg: `Field ${field} is not allowed`, param: field }],
-          });
+        return res.status(400).json({ message: `Field ${field} is not allowed` });
       }
     }
 
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ message: "Bad Request", errors: errors.array() });
     }
 
     const id = randomUUID();
@@ -86,19 +81,14 @@ export const dogController = {
     // 許可されていないフィールドのチェック
     for (const field of Object.keys(req.body)) {
       if (!bodys.includes(field)) {
-        return res
-          .status(400)
-          .json({
-            message: "Bad Request",
-            errors: [{ msg: `Field ${field} is not allowed`, param: field }],
-          });
+        return res.status(400).json({ message: `Field ${field} is not allowed` });
       }
     }
 
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ message: "Bad Request", errors: errors.array() });
     }
 
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
