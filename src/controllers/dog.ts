@@ -4,28 +4,42 @@ import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
 import { body, validationResult } from "express-validator";
-import { dogGenders, dog3Sizes } from "../common/dogs.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    const bodys = ["name", "gender", "size"];
+    // バリデーションルールの配列を定義
+    const validationRules = [
+      body("name")
+        .isString()
+        .withMessage("Name must be a string")
+        .custom((value, { req }) => {
+          const invalidNames = ["オス", "メス", "大型", "中型", "小型"];
+          if (invalidNames.includes(value)) {
+            throw new Error("Invalid value for name");
+          }
+          return true;
+        }),
+      body("gender")
+        .isString()
+        .withMessage("Gender must be a string")
+        .isIn(["オス", "メス"])
+        .withMessage('Gender must be either "オス" or "メス"'),
+      body("size")
+        .isString()
+        .withMessage("Size must be a string")
+        .isIn(["大型", "中型", "小型"])
+        .withMessage('Size must be either "大型", "中型", or "小型"'),
+    ];
 
     // バリデーションの実行
-    await body("name").isString().run(req);
-    await body("gender").isString().isIn(dogGenders).run(req);
-    await body("size").isString().isIn(dog3Sizes).run(req);
-
-    // 許可されていないフィールドのチェック
-    for (const field of Object.keys(req.body)) {
-      if (!bodys.includes(field)) {
-        return res.status(400).json({ message:"Bad Request"});
-      }
+    for (const rule of validationRules) {
+      await rule.run(req);
     }
-    
+
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request" });
+      return res.status(400).json({ errors: errors.array() });
     }
 
     const id = randomUUID();
@@ -52,24 +66,42 @@ export const dogController = {
   },
 
   async update(req: Request, res: Response) {
-    const bodys = ["name", "gender", "size"];
+    // バリデーションルールの配列を定義
+    const validationRules = [
+      body("name")
+        .optional()
+        .isString()
+        .withMessage("Name must be a string")
+        .custom((value, { req }) => {
+          const invalidNames = ["オス", "メス", "大型", "中型", "小型"];
+          if (invalidNames.includes(value)) {
+            throw new Error("Invalid value for name");
+          }
+          return true;
+        }),
+      body("gender")
+        .optional()
+        .isString()
+        .withMessage("Gender must be a string")
+        .isIn(["オス", "メス"])
+        .withMessage('Gender must be either "オス" or "メス"'),
+      body("size")
+        .optional()
+        .isString()
+        .withMessage("Size must be a string")
+        .isIn(["大型", "中型", "小型"])
+        .withMessage('Size must be either "大型", "中型", or "小型"'),
+    ];
 
     // バリデーションの実行
-    await body("name").optional().isString().run(req);
-    await body("gender").optional().isString().isIn(dogGenders).run(req);
-    await body("size").optional().isString().isIn(dog3Sizes).run(req);
-
-    // 許可されていないフィールドのチェック
-    for (const field of Object.keys(req.body)) {
-      if (!bodys.includes(field)) {
-        return res.status(400).json({ message: "Bad Request" });
-      }
+    for (const rule of validationRules) {
+      await rule.run(req);
     }
 
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request" });
+      return res.status(400).json({ errors: errors.array() });
     }
 
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
