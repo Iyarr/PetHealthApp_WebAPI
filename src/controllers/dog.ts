@@ -4,19 +4,14 @@ import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
 import { body, validationResult } from "express-validator";
-import { dogGenders, dog3Sizes } from "../common/dogs.js"; // インポート
+import { dogGenders, dog3Sizes } from "../common/dogs.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
     const bodys = ["name", "gender", "size"];
 
+    // バリデーションの実行
     await body("name").isString().withMessage("Name must be a string").run(req);
-    await body("gender")
-      .isString()
-      .withMessage("Gender must be a string")
-      .isIn(dogGenders)
-      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
-      .run(req);
     await body("size")
       .isString()
       .withMessage("Size must be a string")
@@ -25,16 +20,19 @@ export const dogController = {
       .run(req);
 
     // 許可されていないフィールドのチェック
-    const extraFields = Object.keys(req.body).filter((field) => !bodys.includes(field));
+    const extraFields = [];
+    for (const field of Object.keys(req.body)) {
+      if (!bodys.includes(field)) {
+        extraFields.push(field);
+      }
+    }
     if (extraFields.length > 0) {
-      return res
-        .status(400)
-        .json({
-          errors: extraFields.map((field) => ({
-            msg: `Field ${field} is not allowed`,
-            param: field,
-          })),
-        });
+      return res.status(400).json({
+        errors: extraFields.map((field) => ({
+          msg: `Field ${field} is not allowed`,
+          param: field,
+        })),
+      });
     }
 
     // エラーの取得
@@ -69,14 +67,8 @@ export const dogController = {
   async update(req: Request, res: Response) {
     const bodys = ["name", "gender", "size"];
 
+    // バリデーションの実行
     await body("name").optional().isString().withMessage("Name must be a string").run(req);
-    await body("gender")
-      .optional()
-      .isString()
-      .withMessage("Gender must be a string")
-      .isIn(dogGenders)
-      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
-      .run(req);
     await body("size")
       .optional()
       .isString()
@@ -86,16 +78,19 @@ export const dogController = {
       .run(req);
 
     // 許可されていないフィールドのチェック
-    const extraFields = Object.keys(req.body).filter((field) => !bodys.includes(field));
+    const extraFields = [];
+    for (const field of Object.keys(req.body)) {
+      if (!bodys.includes(field)) {
+        extraFields.push(field);
+      }
+    }
     if (extraFields.length > 0) {
-      return res
-        .status(400)
-        .json({
-          errors: extraFields.map((field) => ({
-            msg: `Field ${field} is not allowed`,
-            param: field,
-          })),
-        });
+      return res.status(400).json({
+        errors: extraFields.map((field) => ({
+          msg: `Field ${field} is not allowed`,
+          param: field,
+        })),
+      });
     }
 
     // エラーの取得
