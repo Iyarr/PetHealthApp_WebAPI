@@ -11,10 +11,14 @@ export const dogController = {
     const bodys = ["name", "gender", "size"];
 
     // バリデーションの実行
-    await body("name").isString().withMessage("Name must be a string").run(req);
+    await body("name").isString().run(req);
+    await body("gender")
+      .isString()
+      .isIn(dogGenders)
+      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
+      .run(req);
     await body("size")
       .isString()
-      .withMessage("Size must be a string")
       .isIn(dog3Sizes)
       .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
       .run(req);
@@ -29,7 +33,7 @@ export const dogController = {
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request"});
+      return res.status(400).json({ message: "Bad Request" });
     }
 
     const id = randomUUID();
@@ -59,11 +63,16 @@ export const dogController = {
     const bodys = ["name", "gender", "size"];
 
     // バリデーションの実行
-    await body("name").optional().isString().withMessage("Name must be a string").run(req);
+    await body("name").optional().isString().run(req);
+    await body("gender")
+      .optional()
+      .isString()
+      .isIn(dogGenders)
+      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
+      .run(req);
     await body("size")
       .optional()
       .isString()
-      .withMessage("Size must be a string")
       .isIn(dog3Sizes)
       .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
       .run(req);
@@ -78,7 +87,7 @@ export const dogController = {
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request"});
+      return res.status(400).json({ message: "Bad Request" });
     }
 
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
