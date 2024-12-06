@@ -9,16 +9,16 @@ import { dogGenders, dog3Sizes } from "../common/dogs.js";
 export const dogController = {
   async create(req: Request, res: Response) {
     const bodys = ["name", "gender", "size"];
-    await body("name").isString().withMessage("Name must be a string").run(req);
+
+    // バリデーションの実行
+    await body("name").isString().run(req);
     await body("gender")
       .isString()
-      .withMessage("Gender must be a string")
       .isIn(dogGenders)
       .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
       .run(req);
     await body("size")
       .isString()
-      .withMessage("Size must be a string")
       .isIn(dog3Sizes)
       .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
       .run(req);
@@ -33,7 +33,7 @@ export const dogController = {
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request"});
+      return res.status(400).json({ message: "Bad Request" });
     }
 
     const id = randomUUID();
@@ -62,18 +62,17 @@ export const dogController = {
   async update(req: Request, res: Response) {
     const bodys = ["name", "gender", "size"];
 
-    await body("name").optional().isString().withMessage("Name must be a string").run(req);
+    // バリデーションの実行
+    await body("name").optional().isString().run(req);
     await body("gender")
       .optional()
       .isString()
-      .withMessage("Gender must be a string")
       .isIn(dogGenders)
       .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
       .run(req);
     await body("size")
       .optional()
       .isString()
-      .withMessage("Size must be a string")
       .isIn(dog3Sizes)
       .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
       .run(req);
@@ -88,7 +87,7 @@ export const dogController = {
     // エラーの取得
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: "Bad Request"});
+      return res.status(400).json({ message: "Bad Request" });
     }
 
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
