@@ -54,7 +54,7 @@ export const dogController = {
     }
   },
 
-  async getMockData(req: Request, res: Response) {
+  async getMockData(req: Request, res: Response) {                  //モック作成
     const mockData = {
       id: "1",
       name: "Pochi",
