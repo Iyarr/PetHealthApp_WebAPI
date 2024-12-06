@@ -12,16 +12,8 @@ export const dogController = {
 
     // バリデーションの実行
     await body("name").isString().run(req);
-    await body("gender")
-      .isString()
-      .isIn(dogGenders)
-      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
-      .run(req);
-    await body("size")
-      .isString()
-      .isIn(dog3Sizes)
-      .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
-      .run(req);
+    await body("gender").isString().isIn(dogGenders).run(req);
+    await body("size").isString().isIn(dog3Sizes).run(req);
 
     // 許可されていないフィールドのチェック
     for (const field of Object.keys(req.body)) {
@@ -64,18 +56,8 @@ export const dogController = {
 
     // バリデーションの実行
     await body("name").optional().isString().run(req);
-    await body("gender")
-      .optional()
-      .isString()
-      .isIn(dogGenders)
-      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
-      .run(req);
-    await body("size")
-      .optional()
-      .isString()
-      .isIn(dog3Sizes)
-      .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
-      .run(req);
+    await body("gender").optional().isString().isIn(dogGenders).run(req);
+    await body("size").optional().isString().isIn(dog3Sizes).run(req);
 
     // 許可されていないフィールドのチェック
     for (const field of Object.keys(req.body)) {
