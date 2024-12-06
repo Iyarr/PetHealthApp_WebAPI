@@ -24,14 +24,12 @@ export const dogController = {
       .run(req);
 
     // 許可されていないフィールドのチェック
-    const extraFields = Object.keys(req.body).filter((field) => !bodys.includes(field));
-    if (extraFields.length > 0) {
-      return res.status(400).json({
-        errors: extraFields.map((field) => ({
-          msg: `Field ${field} is not allowed`,
-          param: field,
-        })),
-      });
+    for (const field of Object.keys(req.body)) {
+      if (!bodys.includes(field)) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: `Field ${field} is not allowed`, param: field }] });
+      }
     }
 
     // エラーの取得
