@@ -1,8 +1,10 @@
 import { ListTablesCommand, CreateTableCommand } from "@aws-sdk/client-dynamodb";
+import { getAuth } from "firebase-admin/auth";
 import { DBClient } from "../utils/dynamodb.js";
+import { FirebaseApp } from "../utils/firebase.js";
 import { env } from "../utils/env.js";
 
-export async function createUserDogTable() {
+async function createUserDogTable() {
   const createTableCommand = new CreateTableCommand({
     AttributeDefinitions: [
       { AttributeName: "uid", AttributeType: "S" },
@@ -31,7 +33,7 @@ export async function createUserDogTable() {
   await DBClient.send(createTableCommand);
 }
 
-export async function createDogTable() {
+async function createDogTable() {
   const createTableCommand = new CreateTableCommand({
     AttributeDefinitions: [
       { AttributeName: "id", AttributeType: "S" },
@@ -51,6 +53,10 @@ export async function createDogTable() {
 
   await DBClient.send(createTableCommand);
 }
+
+const auth = getAuth(FirebaseApp);
+const listUsersResult = await auth.listUsers();
+await Promise.all(listUsersResult.users.map((user) => auth.deleteUser(user.uid)));
 
 const listTablesCommand = new ListTablesCommand({});
 const response = await DBClient.send(listTablesCommand);
