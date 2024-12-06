@@ -8,6 +8,7 @@ import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { UserDogsTablePK, UserDogsTableItems } from "../types/userdog.js";
 import { DynamoDBBatchWriteLimit, userDogsTablePK } from "../common/dynamodb.js";
+import { userDogsTableBooleanAttributes } from "../common/dynamodb.js";
 
 class UserDogs extends Model {
   constructor() {
@@ -15,30 +16,27 @@ class UserDogs extends Model {
   }
 
   async postItemCommand<T extends object>(item: T) {
-    // 重複チェックのための条件式を作成
-    const expressionAttributeNames = {
-      "#dogId": "dogId",
-      "#uid": "uid",
-    };
-    const conditionExpression = userDogsTablePK
-      .map((key) => {
-        return `(attribute_not_exists(#${key}))`;
-      })
+    const whetherComplexPKIsNotExist = userDogsTablePK
+      .map((key) => `(attribute_not_exists(#${key}))`)
       .join(" OR ");
-
+    const isNotAccepted = `#isAccepted = :false AND #isAnswered = :true`;
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
-      ExpressionAttributeNames: expressionAttributeNames,
-      ConditionExpression: conditionExpression,
       ReturnValues: "ALL_OLD",
+      ConditionExpression: `(${whetherComplexPKIsNotExist}) OR (${isNotAccepted})`,
+      ExpressionAttributeNames: {
+        ...userDogsTableBooleanAttributes.reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {}),
+        ...userDogsTablePK.reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {}),
+      },
+      ExpressionAttributeValues: {
+        ":false": this.createAttributeValue(false),
+        ":true": this.createAttributeValue(true),
+      },
     });
 
     try {
-      const result = await DBClient.send(command);
-      if (result.Attributes !== undefined) {
-        throw new Error("Existing item updated mistakenly");
-      }
+      await DBClient.send(command);
     } catch (e) {
       throw new Error(e);
     }
@@ -121,8 +119,8 @@ class UserDogs extends Model {
         },
       },
     });
-    const result = await DBClient.send(command);
-    const items = result.Items.map((item) =>
+    const output = await DBClient.send(command);
+    const items = output.Items.map((item) =>
       this.formatItemFromCommand(item)
     ) as UserDogsTableItems[];
     return items;
@@ -134,8 +132,7 @@ class UserDogs extends Model {
       Item: this.formatItemForCommand(item),
       ConditionExpression: userDogsTablePK.map((key) => `attribute_exists(#${key})`).join(" AND "),
       ExpressionAttributeNames: {
-        "#dogId": "dogId",
-        "#uid": "uid",
+        ...userDogsTablePK.reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {}),
       },
     });
     const result = await DBClient.send(command);

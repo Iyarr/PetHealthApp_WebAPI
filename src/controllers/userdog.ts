@@ -61,7 +61,6 @@ export const userdogController = {
         data: {
           userdogs: userdogs.map((userdog) => ({
             dogId: userdog.dogId,
-            uid: userdog.uid,
           })),
         },
       });
@@ -77,7 +76,6 @@ export const userdogController = {
       ...(req.body as UserDogPUTRequestBody),
       isAnswered: true,
     };
-    console.log(userdog);
     try {
       await userDogModel.update(userdog);
       res.status(200).json({ message: "userdog updated" });

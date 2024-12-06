@@ -4,7 +4,6 @@ import { randomUUID } from "node:crypto";
 import { userDogModel } from "../../models/userdog.js";
 import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
-import { DogPOSTRequestBody, DogPUTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 
 const numberOfUser = 50;
@@ -14,16 +13,23 @@ const numberOfUserDogsPerUser = 10;
 const numberOfDogs = numberOfUser * numberOfDogsPerUser;
 const numberOfUserDogs = numberOfUser * numberOfUserDogsPerUser;
 
-type TestDogItem = {
+type TestDogTableItems = {
   id: string;
   ownerUid: string;
-} & DogPOSTRequestBody;
+  name: string;
+  gender: (typeof dogGenders)[number];
+  size: (typeof dog3Sizes)[number];
+};
 
 type TestDog = {
-  invitingUsers: string[];
-  acceptedUsers: string[];
-  item: TestDogItem;
-  updateItem: DogPUTRequestBody;
+  invitedUids: string[];
+  memberUids: string[];
+  item: TestDogTableItems;
+  updateItem: {
+    name?: string;
+    gender?: (typeof dogGenders)[number];
+    size?: (typeof dog3Sizes)[number];
+  };
 };
 
 type TestUserDog = {
@@ -31,7 +37,13 @@ type TestUserDog = {
   updateItem: { isAccepted: boolean };
 };
 
-const testUsers = [...Array(numberOfUser).keys()].map((i: number) => {
+type TestUser = {
+  uid: string;
+  invitedDogIds: string[];
+  acceptedDogIds: string[];
+};
+
+const testUsers: TestUser[] = [...Array(numberOfUser).keys()].map((i: number) => {
   return {
     uid: randomUUID() as string,
     invitedDogIds: [] as string[],
@@ -40,7 +52,11 @@ const testUsers = [...Array(numberOfUser).keys()].map((i: number) => {
 });
 
 const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
-  const reqBody: DogPOSTRequestBody = {
+  const reqBody: {
+    name: string;
+    gender: (typeof dogGenders)[number];
+    size: (typeof dog3Sizes)[number];
+  } = {
     name: i.toString(),
     gender: dogGenders[i % 2],
     size: dog3Sizes[i % 3],
@@ -49,9 +65,8 @@ const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
   const ownerUidIndex = Math.floor(Math.random() * numberOfUser);
   const ownerUid = testUsers[ownerUidIndex].uid;
   return {
-    invitingUsers: [] as string[],
-    acceptedUsers: [] as string[],
-
+    invitedUids: [] as string[],
+    memberUids: [] as string[],
     item: {
       id,
       ownerUid,
@@ -71,13 +86,13 @@ const testUserDogs: TestUserDog[] = [...Array(numberOfUserDogs).keys()].map((i: 
     const dogIndex = Math.floor(Math.random() * numberOfDogs);
     const dog = testDogs[dogIndex];
     const ownerUid = dog.item.ownerUid;
-    if (ownerUid !== uid && !dog.invitingUsers.includes(uid)) {
+    if (ownerUid !== uid && !dog.invitedUids.includes(uid)) {
       const updateItem = { isAccepted: false };
-      dog.invitingUsers.push(uid);
+      dog.invitedUids.push(uid);
       user.invitedDogIds.push(dog.item.id);
       if (i % 2 === 0) {
         updateItem.isAccepted = true;
-        dog.acceptedUsers.push(uid);
+        dog.memberUids.push(uid);
         user.acceptedDogIds.push(dog.item.id);
       }
       return {
@@ -102,7 +117,7 @@ await test("UserDog Test", async (t) => {
   await test("Create Dogs for Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        await dogModel.postItemCommand<DogPOSTRequestBody>(testDog.item);
+        await dogModel.postItemCommand<TestDogTableItems>(testDog.item);
       })
     );
     strict.ok(true);
@@ -119,6 +134,16 @@ await test("UserDog Test", async (t) => {
       })
     );
     strict.ok(true);
+  });
+
+  await test("Get Notification", async () => {
+    await Promise.all(
+      testUsers.map(async (user) => {
+        const userdogs = await userDogModel.getNotification(user.uid);
+        const dogIds = userdogs.map((userdog) => userdog.dogId);
+        strict.deepStrictEqual(dogIds.sort(), user.invitedDogIds.sort());
+      })
+    );
   });
 
   await test("Update UserDog", async () => {
@@ -145,7 +170,7 @@ await test("UserDog Test", async (t) => {
       testDogs.map(async (dog) => {
         const users = await userDogModel.getUsersFromDogId(dog.item.id);
         const uids = users.map((user) => user.uid);
-        strict.deepStrictEqual(uids.sort(), dog.acceptedUsers.sort());
+        strict.deepStrictEqual(uids.sort(), dog.memberUids.sort());
       })
     );
   });
