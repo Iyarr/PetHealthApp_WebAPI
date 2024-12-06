@@ -4,32 +4,29 @@ import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
 import { body, validationResult } from "express-validator";
+import { dogGenders, dog3Sizes } from "../common/dogs.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    // バリデーションルールの配列を定義
-    const validationRules = [
-      body("name")
-        .isString()
-        .withMessage("Name must be a string")
-        .custom((value, { req }) => {
-          const invalidNames = ["オス", "メス", "大型", "中型", "小型"];
-          if (invalidNames.includes(value)) {
-            throw new Error("Invalid value for name");
-          }
-          return true;
-        }),
-      body("gender")
-        .isString()
-        .withMessage("Gender must be a string")
-        .isIn(["オス", "メス"])
-        .withMessage('Gender must be either "オス" or "メス"'),
-      body("size")
-        .isString()
-        .withMessage("Size must be a string")
-        .isIn(["大型", "中型", "小型"])
-        .withMessage('Size must be either "大型", "中型", or "小型"'),
-    ];
+    const bodys = ["name", "gender", "size"];
+    const validationRules = bodys.map((field) => {
+      switch (field) {
+        case "name":
+          return body(field).isString().withMessage("Name must be a string");
+        case "gender":
+          return body(field)
+            .isString()
+            .withMessage("Gender must be a string")
+            .isIn(dogGenders)
+            .withMessage(`Gender must be either ${dogGenders.join(" or ")}`);
+        case "size":
+          return body(field)
+            .isString()
+            .withMessage("Size must be a string")
+            .isIn(dog3Sizes)
+            .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`);
+      }
+    });
 
     // バリデーションの実行
     for (const rule of validationRules) {
@@ -66,32 +63,27 @@ export const dogController = {
   },
 
   async update(req: Request, res: Response) {
-    // バリデーションルールの配列を定義
-    const validationRules = [
-      body("name")
-        .optional()
-        .isString()
-        .withMessage("Name must be a string")
-        .custom((value, { req }) => {
-          const invalidNames = ["オス", "メス", "大型", "中型", "小型"];
-          if (invalidNames.includes(value)) {
-            throw new Error("Invalid value for name");
-          }
-          return true;
-        }),
-      body("gender")
-        .optional()
-        .isString()
-        .withMessage("Gender must be a string")
-        .isIn(["オス", "メス"])
-        .withMessage('Gender must be either "オス" or "メス"'),
-      body("size")
-        .optional()
-        .isString()
-        .withMessage("Size must be a string")
-        .isIn(["大型", "中型", "小型"])
-        .withMessage('Size must be either "大型", "中型", or "小型"'),
-    ];
+    const bodys = ["name", "gender", "size"];
+    const validationRules = bodys.map((field) => {
+      switch (field) {
+        case "name":
+          return body(field).optional().isString().withMessage("Name must be a string");
+        case "gender":
+          return body(field)
+            .optional()
+            .isString()
+            .withMessage("Gender must be a string")
+            .isIn(dogGenders)
+            .withMessage(`Gender must be either ${dogGenders.join(" or ")}`);
+        case "size":
+          return body(field)
+            .optional()
+            .isString()
+            .withMessage("Size must be a string")
+            .isIn(dog3Sizes)
+            .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`);
+      }
+    });
 
     // バリデーションの実行
     for (const rule of validationRules) {
