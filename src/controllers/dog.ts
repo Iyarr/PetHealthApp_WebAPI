@@ -24,7 +24,10 @@ export const dogController = {
       if (!bodys.includes(field)) {
         return res
           .status(400)
-          .json({ errors: [{ msg: `Field ${field} is not allowed`, param: field }] });
+          .json({
+            message: "Bad Request",
+            errors: [{ msg: `Field ${field} is not allowed`, param: field }],
+          });
       }
     }
 
@@ -44,7 +47,7 @@ export const dogController = {
       await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
       res.status(201).json({ message: "Dog created", data: { id } });
     } catch (e) {
-      res.status(400).json({ message: "Bad Request", errors: [{ msg: e.message }] });
+      res.status(400).json({ message: e.message });
     }
   },
 
@@ -75,7 +78,10 @@ export const dogController = {
       if (!bodys.includes(field)) {
         return res
           .status(400)
-          .json({ errors: [{ msg: `Field ${field} is not allowed`, param: field }] });
+          .json({
+            message: "Bad Request",
+            errors: [{ msg: `Field ${field} is not allowed`, param: field }],
+          });
       }
     }
 
@@ -94,7 +100,7 @@ export const dogController = {
         res.status(200).json({ message: "Dog updated" });
       }
     } catch (e) {
-      res.status(400).json({ message: "Bad Request", errors: [{ msg: e.message }] });
+      res.status(400).json({ message: e.message });
     }
   },
 
@@ -114,7 +120,7 @@ export const dogController = {
       }
       res.status(200).json({ message: "Dog deleted" });
     } catch (e) {
-      res.status(400).json({ message: "Bad Request", errors: [{ msg: e.message }] });
+      res.status(400).json({ message: e.message });
     }
   },
 };
