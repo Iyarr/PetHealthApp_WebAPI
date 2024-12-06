@@ -28,7 +28,10 @@ export const dogController = {
       if (!bodys.includes(field)) {
         return res
           .status(400)
-          .json({ errors: [{ msg: `Field ${field} is not allowed`, param: field }] });
+          .json({
+            message: "Bad Request",
+            errors: [{ msg: `Field ${field} is not allowed`, param: field }],
+          });
       }
     }
 
@@ -48,7 +51,7 @@ export const dogController = {
       await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
       res.status(201).json({ message: "Dog created", data: { id } });
     } catch (e) {
-      res.status(400).json({ message: "Bad Request", errors: [{ msg: e.message }] });
+      res.status(400).json({ message: e.message });
     }
   },
 
@@ -81,14 +84,15 @@ export const dogController = {
       .run(req);
 
     // 許可されていないフィールドのチェック
-    const extraFields = Object.keys(req.body).filter((field) => !bodys.includes(field));
-    if (extraFields.length > 0) {
-      return res.status(400).json({
-        errors: extraFields.map((field) => ({
-          msg: `Field ${field} is not allowed`,
-          param: field,
-        })),
-      });
+    for (const field of Object.keys(req.body)) {
+      if (!bodys.includes(field)) {
+        return res
+          .status(400)
+          .json({
+            message: "Bad Request",
+            errors: [{ msg: `Field ${field} is not allowed`, param: field }],
+          });
+      }
     }
 
     // エラーの取得
@@ -106,7 +110,7 @@ export const dogController = {
         res.status(200).json({ message: "Dog updated" });
       }
     } catch (e) {
-      res.status(400).json({ message: "Bad Request", errors: [{ msg: e.message }] });
+      res.status(400).json({ message: e.message });
     }
   },
 
@@ -126,7 +130,7 @@ export const dogController = {
       }
       res.status(200).json({ message: "Dog deleted" });
     } catch (e) {
-      res.status(400).json({ message: "Bad Request", errors: [{ msg: e.message }] });
+      res.status(400).json({ message: e.message });
     }
   },
 };
