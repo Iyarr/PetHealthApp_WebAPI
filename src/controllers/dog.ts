@@ -3,9 +3,45 @@ import { randomUUID } from "crypto";
 import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
+import { body, validationResult } from "express-validator";
 
 export const dogController = {
   async create(req: Request, res: Response) {
+    // バリデーションルールの配列を定義
+    const validationRules = [
+      body("name")
+        .isString()
+        .withMessage("Name must be a string")
+        .custom((value, { req }) => {
+          const invalidNames = ["オス", "メス", "大型", "中型", "小型"];
+          if (invalidNames.includes(value)) {
+            throw new Error("Invalid value for name");
+          }
+          return true;
+        }),
+      body("gender")
+        .isString()
+        .withMessage("Gender must be a string")
+        .isIn(["オス", "メス"])
+        .withMessage('Gender must be either "オス" or "メス"'),
+      body("size")
+        .isString()
+        .withMessage("Size must be a string")
+        .isIn(["大型", "中型", "小型"])
+        .withMessage('Size must be either "大型", "中型", or "小型"'),
+    ];
+
+    // バリデーションの実行
+    for (const rule of validationRules) {
+      await rule.run(req);
+    }
+
+    // エラーの取得
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const id = randomUUID();
     const dog: DogPOSTRequestBody = {
       id,
@@ -23,13 +59,51 @@ export const dogController = {
   async read(req: Request, res: Response) {
     try {
       const dog = await dogModel.getItemCommand({ id: req.params.id });
-      res.status(200).json({ message: "OK", data: { dog } });
+      res.status(200).json({ message: "OK", data: dog });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
     }
   },
 
   async update(req: Request, res: Response) {
+    // バリデーションルールの配列を定義
+    const validationRules = [
+      body("name")
+        .optional()
+        .isString()
+        .withMessage("Name must be a string")
+        .custom((value, { req }) => {
+          const invalidNames = ["オス", "メス", "大型", "中型", "小型"];
+          if (invalidNames.includes(value)) {
+            throw new Error("Invalid value for name");
+          }
+          return true;
+        }),
+      body("gender")
+        .optional()
+        .isString()
+        .withMessage("Gender must be a string")
+        .isIn(["オス", "メス"])
+        .withMessage('Gender must be either "オス" or "メス"'),
+      body("size")
+        .optional()
+        .isString()
+        .withMessage("Size must be a string")
+        .isIn(["大型", "中型", "小型"])
+        .withMessage('Size must be either "大型", "中型", or "小型"'),
+    ];
+
+    // バリデーションの実行
+    for (const rule of validationRules) {
+      await rule.run(req);
+    }
+
+    // エラーの取得
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
     try {
       const result = await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
@@ -39,7 +113,6 @@ export const dogController = {
         res.status(200).json({ message: "Dog updated" });
       }
     } catch (e) {
-      //console.log(JSON.stringify(dog, null, 2));
       res.status(400).json({ message: e.message });
     }
   },
