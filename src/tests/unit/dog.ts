@@ -38,19 +38,16 @@ await test("Dog Test", async (t) => {
   await t.test("Read dog", async () => {
     const item = await dogModel.getItemCommand({ id });
     strict.deepStrictEqual(item, testDogItem);
-    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Update dog", async () => {
     const item = await dogModel.updateItemCommand(id, PutDogItem, hostUid);
     strict.deepStrictEqual(item, UpdatedDogItem);
-    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Read updated dog", async () => {
     const item = await dogModel.getItemCommand({ id });
     strict.deepStrictEqual(item, UpdatedDogItem);
-    console.log(JSON.stringify(item, null, 2));
   });
 
   await t.test("Update dog with wrong hostUid", async () => {
@@ -71,8 +68,7 @@ await test("Dog Test", async (t) => {
   });
 
   await t.test("Delete dog", async () => {
-    const old_item = await dogModel.deleteItemCommand(id, hostUid);
-    console.log(JSON.stringify(old_item, null, 2));
+    await dogModel.deleteItemCommand(id, hostUid);
     strict.ok(true);
   });
 });

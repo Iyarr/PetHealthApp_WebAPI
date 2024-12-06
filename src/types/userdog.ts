@@ -1,4 +1,8 @@
-import { userDogsTablePK, userDogsTableItems } from "../common/dynamodb.js";
+import {
+  userDogsTablePK,
+  userDogsTableBooleanAttributes,
+  userdogsTableStringAttributes,
+} from "../common/dynamodb.js";
 import { ResponseBody, ResponseOnlyMessage } from "./utils.js";
 
 // POST
@@ -44,13 +48,12 @@ export type UserDogsDELETERequestParams = {
 export type UserDogsDELETEResponseBody = ResponseOnlyMessage;
 
 // DynamoDB
-type UserDogsTablePKKeyType = (typeof userDogsTablePK)[number];
-type UserDogsTableItemsKeyType = (typeof userDogsTableItems)[number];
-type UserDogsPKObjectType = {
-  [K in UserDogsTablePKKeyType]: string;
-};
-type UserDogsItemsObjectType = {
-  [K in UserDogsTableItemsKeyType]: boolean | string;
+export type UserDogsTablePK = {
+  [K in (typeof userDogsTablePK)[number]]: string;
 };
 
-export type UserDogsTableItems = UserDogsPKObjectType & UserDogsItemsObjectType;
+export type UserDogsTableItems = {
+  [K in (typeof userDogsTableBooleanAttributes)[number]]: boolean;
+} & {
+  [K in (typeof userdogsTableStringAttributes)[number]]: string;
+} & UserDogsTablePK;

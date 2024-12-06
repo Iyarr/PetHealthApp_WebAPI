@@ -4,20 +4,32 @@ import { randomUUID } from "node:crypto";
 import { userDogModel } from "../../models/userdog.js";
 import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
-import { DogPOSTRequestBody, DogPUTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 
-const numberOfVariousTestData = 70;
+const numberOfUser = 50;
+const numberOfDogsPerUser = 3;
+const numberOfUserDogsPerUser = 10;
 
-type TestDogItem = {
+const numberOfDogs = numberOfUser * numberOfDogsPerUser;
+const numberOfUserDogs = numberOfUser * numberOfUserDogsPerUser;
+
+type TestDogTableItems = {
   id: string;
   ownerUid: string;
-} & DogPOSTRequestBody;
+  name: string;
+  gender: (typeof dogGenders)[number];
+  size: (typeof dog3Sizes)[number];
+};
 
 type TestDog = {
-  accessibleUsers: string[];
-  item: TestDogItem;
-  updateItem: DogPUTRequestBody;
+  invitedUids: string[];
+  memberUids: string[];
+  item: TestDogTableItems;
+  updateItem: {
+    name?: string;
+    gender?: (typeof dogGenders)[number];
+    size?: (typeof dog3Sizes)[number];
+  };
 };
 
 type TestUserDog = {
@@ -25,26 +37,36 @@ type TestUserDog = {
   updateItem: { isAccepted: boolean };
 };
 
-const testUsers = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
+type TestUser = {
+  uid: string;
+  invitedDogIds: string[];
+  acceptedDogIds: string[];
+};
+
+const testUsers: TestUser[] = [...Array(numberOfUser).keys()].map((i: number) => {
   return {
     uid: randomUUID() as string,
-    // アクセス可能な犬のIDを格納
-    accessibleDogIds: [] as string[],
+    invitedDogIds: [] as string[],
+    acceptedDogIds: [] as string[],
   };
 });
 
-const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: number) => {
-  const reqBody: DogPOSTRequestBody = {
+const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
+  const reqBody: {
+    name: string;
+    gender: (typeof dogGenders)[number];
+    size: (typeof dog3Sizes)[number];
+  } = {
     name: i.toString(),
     gender: dogGenders[i % 2],
     size: dog3Sizes[i % 3],
   };
   const id = randomUUID() as string;
-  const ownerUidIndex = Math.floor(Math.random() * numberOfVariousTestData);
+  const ownerUidIndex = Math.floor(Math.random() * numberOfUser);
   const ownerUid = testUsers[ownerUidIndex].uid;
   return {
-    // アクセスを許可したユーザーのIDを格納
-    accessibleUsers: [] as string[],
+    invitedUids: [] as string[],
+    memberUids: [] as string[],
     item: {
       id,
       ownerUid,
@@ -57,19 +79,21 @@ const testDogs: TestDog[] = [...Array(numberOfVariousTestData).keys()].map((i: n
   };
 });
 
-const testUserDogs: TestUserDog[] = [...Array(numberOfVariousTestData)].map((i: number) => {
-  const user = testUsers[Math.floor(Math.random() * numberOfVariousTestData)];
+const testUserDogs: TestUserDog[] = [...Array(numberOfUserDogs).keys()].map((i: number) => {
+  const user = testUsers[Math.floor(Math.random() * numberOfUser)];
   const uid = user.uid;
   while (true) {
-    const dogIndex = Math.floor(Math.random() * numberOfVariousTestData);
+    const dogIndex = Math.floor(Math.random() * numberOfDogs);
     const dog = testDogs[dogIndex];
     const ownerUid = dog.item.ownerUid;
-    if (ownerUid !== uid && !dog.accessibleUsers.includes(uid)) {
+    if (ownerUid !== uid && !dog.invitedUids.includes(uid)) {
       const updateItem = { isAccepted: false };
-      if (i % 2) {
+      dog.invitedUids.push(uid);
+      user.invitedDogIds.push(dog.item.id);
+      if (i % 2 === 0) {
         updateItem.isAccepted = true;
-        dog.accessibleUsers.push(uid);
-        user.accessibleDogIds.push(dog.item.id);
+        dog.memberUids.push(uid);
+        user.acceptedDogIds.push(dog.item.id);
       }
       return {
         item: {
@@ -93,7 +117,7 @@ await test("UserDog Test", async (t) => {
   await test("Create Dogs for Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        await dogModel.postItemCommand<DogPOSTRequestBody>(testDog.item);
+        await dogModel.postItemCommand<TestDogTableItems>(testDog.item);
       })
     );
     strict.ok(true);
@@ -112,6 +136,16 @@ await test("UserDog Test", async (t) => {
     strict.ok(true);
   });
 
+  await test("Get Notification", async () => {
+    await Promise.all(
+      testUsers.map(async (user) => {
+        const userdogs = await userDogModel.getNotification(user.uid);
+        const dogIds = userdogs.map((userdog) => userdog.dogId);
+        strict.deepStrictEqual(dogIds.sort(), user.invitedDogIds.sort());
+      })
+    );
+  });
+
   await test("Update UserDog", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
@@ -126,7 +160,7 @@ await test("UserDog Test", async (t) => {
       testUsers.map(async (user) => {
         const dogs = await userDogModel.getDogsFromUid(user.uid);
         const dogIds = dogs.map((dog) => dog.dogId);
-        strict.deepStrictEqual(dogIds.sort(), user.accessibleDogIds.sort());
+        strict.deepStrictEqual(dogIds.sort(), user.acceptedDogIds.sort());
       })
     );
   });
@@ -136,18 +170,32 @@ await test("UserDog Test", async (t) => {
       testDogs.map(async (dog) => {
         const users = await userDogModel.getUsersFromDogId(dog.item.id);
         const uids = users.map((user) => user.uid);
-        strict.deepStrictEqual(uids.sort(), dog.accessibleUsers.sort());
+        strict.deepStrictEqual(uids.sort(), dog.memberUids.sort());
       })
     );
   });
 
-  await test("Delete UserDog by DogId", async () => {
-    await Promise.all(
-      testDogs.map(async (dog) => {
-        await userDogModel.deleteUserDogsWithDogId(dog.item.id);
-        const output = await userDogModel.getUsersFromDogId(dog.item.id);
-        strict.deepStrictEqual(output.length, 0);
-      })
-    );
+  await test("Delete UserDog", async () => {
+    const [deleteUserdog, ...rest] = testUserDogs;
+    try {
+      await userDogModel.deleteWithOwnerValidation(
+        {
+          dogId: deleteUserdog.item.dogId,
+          uid: deleteUserdog.item.uid,
+        },
+        deleteUserdog.item.ownerUid
+      );
+      await userDogModel.deleteItemsWithoutOwnerValidation(
+        rest.map((userdog) => {
+          return {
+            dogId: userdog.item.dogId,
+            uid: userdog.item.uid,
+          };
+        })
+      );
+    } catch (e) {
+      console.log(deleteUserdog);
+      strict.fail(e);
+    }
   });
 });

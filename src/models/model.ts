@@ -7,34 +7,12 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
+import { DynamoDBBatchWriteLimit } from "../common/dynamodb.js";
 
 export class Model {
   tableName: string;
   constructor(tableName: string) {
     this.tableName = env.TABLE_PREFIX + tableName;
-  }
-
-  // 項目を追加 or 削除できるのは25個まで
-  async batchWriteItemCommand<T extends object>(items: T[]) {
-    const requestItems: Record<string, object[]> = {};
-    requestItems[this.tableName] = [];
-    for (const item of items) {
-      requestItems[this.tableName].push({
-        PutRequest: {
-          Item: this.formatItemForCommand(item),
-        },
-      });
-    }
-    const command = new BatchWriteItemCommand({
-      RequestItems: requestItems,
-    });
-
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(items, result);
-      throw new Error("Failed to post item");
-    }
-    return result.UnprocessedItems;
   }
 
   async getItemCommand<T extends object>(pk: T) {
@@ -51,26 +29,24 @@ export class Model {
     }
   }
 
-  // 項目を取得できるのは100個まで
   async batchGetItemCommand<T extends object>(pks: T[]) {
-    const keys: Record<string, AttributeValue>[] = [];
-    for (const pk of pks) {
-      keys.push(this.formatItemForCommand(pk));
-    }
-    const command = new BatchGetItemCommand({
-      RequestItems: {
-        [this.tableName]: {
-          Keys: keys,
-        },
-      },
-    });
+    const slicedPks = this.sliceObjectList(pks, DynamoDBBatchWriteLimit);
+    const items = await Promise.all(
+      slicedPks.map(async (pks) => {
+        const command = new BatchGetItemCommand({
+          RequestItems: {
+            [this.tableName]: {
+              Keys: pks.map((pk) => this.formatItemForCommand(pk)),
+            },
+          },
+        });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(pks, result);
-      throw new Error("Failed to get response");
-    }
-    return result.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
+        const output = await DBClient.send(command);
+        return output.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
+      })
+    );
+
+    return items.flat();
   }
 
   // オブジェクトをDynamoDBのCommandでの形式に変換
@@ -108,5 +84,14 @@ export class Model {
       throw new Error("Could not create AttributeValue");
     }
     return attributeValue;
+  }
+
+  sliceObjectList<T extends object>(items: T[], limit: number): T[][] {
+    const slicedItems: T[][] = [];
+    for (let i = 0; i < items.length; i += limit) {
+      slicedItems.push(items.slice(i, i + limit));
+    }
+    slicedItems.push(items.slice(-1 * (items.length % limit)));
+    return slicedItems;
   }
 }
