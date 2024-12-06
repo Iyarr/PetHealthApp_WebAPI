@@ -53,4 +53,15 @@ export const dogController = {
       res.status(400).json({ message: e.message });
     }
   },
+
+  async getMockData(req: Request, res: Response) {
+    const mockData = {
+      id: "1",
+      name: "Pochi",
+      gender: "male",
+      size: "small",
+      hostUid: "user_id"
+    };
+    res.status(200).json({ message: "OK", data: mockData });
+  }
 };
