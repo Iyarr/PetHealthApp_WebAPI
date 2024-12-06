@@ -9,28 +9,31 @@ import { dogGenders, dog3Sizes } from "../common/dogs.js";
 export const dogController = {
   async create(req: Request, res: Response) {
     const bodys = ["name", "gender", "size"];
-    const validationRules = bodys.map((field) => {
-      switch (field) {
-        case "name":
-          return body(field).isString().withMessage("Name must be a string");
-        case "gender":
-          return body(field)
-            .isString()
-            .withMessage("Gender must be a string")
-            .isIn(dogGenders)
-            .withMessage(`Gender must be either ${dogGenders.join(" or ")}`);
-        case "size":
-          return body(field)
-            .isString()
-            .withMessage("Size must be a string")
-            .isIn(dog3Sizes)
-            .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`);
-      }
-    });
+    await body("name").isString().withMessage("Name must be a string").run(req);
+    await body("gender")
+      .isString()
+      .withMessage("Gender must be a string")
+      .isIn(dogGenders)
+      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
+      .run(req);
+    await body("size")
+      .isString()
+      .withMessage("Size must be a string")
+      .isIn(dog3Sizes)
+      .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
+      .run(req);
 
-    // バリデーションの実行
-    for (const rule of validationRules) {
-      await rule.run(req);
+    // 許可されていないフィールドのチェック
+    const extraFields = Object.keys(req.body).filter((field) => !bodys.includes(field));
+    if (extraFields.length > 0) {
+      return res
+        .status(400)
+        .json({
+          errors: extraFields.map((field) => ({
+            msg: `Field ${field} is not allowed`,
+            param: field,
+          })),
+        });
     }
 
     // エラーの取得
@@ -64,30 +67,34 @@ export const dogController = {
 
   async update(req: Request, res: Response) {
     const bodys = ["name", "gender", "size"];
-    const validationRules = bodys.map((field) => {
-      switch (field) {
-        case "name":
-          return body(field).optional().isString().withMessage("Name must be a string");
-        case "gender":
-          return body(field)
-            .optional()
-            .isString()
-            .withMessage("Gender must be a string")
-            .isIn(dogGenders)
-            .withMessage(`Gender must be either ${dogGenders.join(" or ")}`);
-        case "size":
-          return body(field)
-            .optional()
-            .isString()
-            .withMessage("Size must be a string")
-            .isIn(dog3Sizes)
-            .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`);
-      }
-    });
 
-    // バリデーションの実行
-    for (const rule of validationRules) {
-      await rule.run(req);
+    await body("name").optional().isString().withMessage("Name must be a string").run(req);
+    await body("gender")
+      .optional()
+      .isString()
+      .withMessage("Gender must be a string")
+      .isIn(dogGenders)
+      .withMessage(`Gender must be either ${dogGenders.join(" or ")}`)
+      .run(req);
+    await body("size")
+      .optional()
+      .isString()
+      .withMessage("Size must be a string")
+      .isIn(dog3Sizes)
+      .withMessage(`Size must be either ${dog3Sizes.join(" or ")}`)
+      .run(req);
+
+    // 許可されていないフィールドのチェック
+    const extraFields = Object.keys(req.body).filter((field) => !bodys.includes(field));
+    if (extraFields.length > 0) {
+      return res
+        .status(400)
+        .json({
+          errors: extraFields.map((field) => ({
+            msg: `Field ${field} is not allowed`,
+            param: field,
+          })),
+        });
     }
 
     // エラーの取得
