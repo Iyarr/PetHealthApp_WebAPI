@@ -3,9 +3,31 @@ import { randomUUID } from "crypto";
 import { DogPOSTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
+import { body, validationResult } from "express-validator";
+import { dogGenders, dog3Sizes } from "../common/dogs.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
+    const bodys = ["name", "gender", "size"];
+
+    // バリデーションの実行
+    await body("name").isString().run(req);
+    await body("gender").isString().isIn(dogGenders).run(req);
+    await body("size").isString().isIn(dog3Sizes).run(req);
+
+    // 許可されていないフィールドのチェック
+    for (const field of Object.keys(req.body)) {
+      if (!bodys.includes(field)) {
+        return res.status(400).json({ message:"Bad Request"});
+      }
+    }
+    
+    // エラーの取得
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "Bad Request" });
+    }
+
     const id = randomUUID();
     const dog: DogPOSTRequestBody = {
       id,
@@ -23,13 +45,33 @@ export const dogController = {
   async read(req: Request, res: Response) {
     try {
       const dog = await dogModel.getItemCommand({ id: req.params.id });
-      res.status(200).json({ message: "OK", data: { dog } });
+      res.status(200).json({ message: "OK", data: dog });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
     }
   },
 
   async update(req: Request, res: Response) {
+    const bodys = ["name", "gender", "size"];
+
+    // バリデーションの実行
+    await body("name").optional().isString().run(req);
+    await body("gender").optional().isString().isIn(dogGenders).run(req);
+    await body("size").optional().isString().isIn(dog3Sizes).run(req);
+
+    // 許可されていないフィールドのチェック
+    for (const field of Object.keys(req.body)) {
+      if (!bodys.includes(field)) {
+        return res.status(400).json({ message: "Bad Request" });
+      }
+    }
+
+    // エラーの取得
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "Bad Request" });
+    }
+
     const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
     try {
       const result = await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
@@ -39,7 +81,6 @@ export const dogController = {
         res.status(200).json({ message: "Dog updated" });
       }
     } catch (e) {
-      //console.log(JSON.stringify(dog, null, 2));
       res.status(400).json({ message: e.message });
     }
   },
