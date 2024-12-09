@@ -1,0 +1,31 @@
+services:
+  api:
+    build: ./api
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    environment:
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - ON_DEVELOPMENT=true
+      - PORT=${API_PORT}
+    depends_on:
+      - db
+    networks:
+      - api-network
+
+  db:
+    build: ./db
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    networks:
+      - api-network
+
+networks:
+  api-network:
+    driver: bridge

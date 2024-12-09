@@ -1,18 +1,13 @@
 #!/bin/bash
 
 # Set environment variables
-export AWS_ACCESS_KEY_ID=dummyAccessKeyId
-export AWS_SECRET_ACCESS_KEY=dummySecretAccessKey
-export AWS_REGION=us-west-2
-export TABLE_PREFIX=Test_
-export PORT=3000
-export DYNAMODB_PORT=8000
-export DYNAMODB_ENDPOINT=http://localhost:$DYNAMODB_PORT
-export ON_DEVELOPMENT=true
+export MYSQL_USER=api
+export MYSQL_PASSWORD=api_password
+export MYSQL_DATABASE=PetHealth
+export DB_PORT=8000
 
-# Run DynamoDB Local
-docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
-  -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
+export API_PORT=3000
+export ON_DEVELOPMENT=true
 
 npm run build
 find dist/ -name '*.js'
