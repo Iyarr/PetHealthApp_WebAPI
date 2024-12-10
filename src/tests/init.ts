@@ -83,6 +83,50 @@ async function createIDKeysTable() {
   await DBClient.send(setUpCommand);
 }
 
+async function createDiaryTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [
+      { AttributeName: "dogId", AttributeType: "S" },
+      { AttributeName: "date", AttributeType: "S" },
+    ],
+    KeySchema: [
+      { AttributeName: "dogId", KeyType: "HASH" },
+      { AttributeName: "date", KeyType: "RANGE" },
+    ],
+    TableName: `${env.TABLE_PREFIX}Diaries`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
+
+async function createItemTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "S" }],
+    KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
+    TableName: `${env.TABLE_PREFIX}Items`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
+
+async function createOptionTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [
+      { AttributeName: "itemId", AttributeType: "S" },
+      { AttributeName: "optionId", AttributeType: "S" },
+    ],
+    KeySchema: [
+      { AttributeName: "itemId", KeyType: "HASH" },
+      { AttributeName: "optionId", KeyType: "RANGE" },
+    ],
+    TableName: `${env.TABLE_PREFIX}Options`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
 console.log("Checking tables in the database");
 const listTablesCommand = new ListTablesCommand({});
 const response = await DBClient.send(listTablesCommand);
@@ -100,4 +144,13 @@ if (!response.TableNames.includes(`${env.TABLE_PREFIX}UserDogs`)) {
 if (!response.TableNames.includes(`${env.TABLE_PREFIX}IDKeys`)) {
   await createIDKeysTable();
   console.log("IDKeys table created");
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}Diaries`)) {
+  await createDiaryTable();
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}Items`)) {
+  await createItemTable();
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}Options`)) {
+  await createOptionTable();
 }
