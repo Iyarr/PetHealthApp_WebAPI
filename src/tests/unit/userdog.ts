@@ -5,8 +5,11 @@ import { userDogModel } from "../../models/userdog.js";
 import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
+import { DescribeTableCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { DBClient } from "../../utils/dynamodb.js";
+import { env } from "../../utils/env.js";
 
-const numberOfUser = 50;
+const numberOfUser = 40;
 const numberOfDogsPerUser = 3;
 const numberOfUserDogsPerUser = 10;
 
@@ -14,7 +17,7 @@ const numberOfDogs = numberOfUser * numberOfDogsPerUser;
 const numberOfUserDogs = numberOfUser * numberOfUserDogsPerUser;
 
 type TestDogTableItems = {
-  id: string;
+  id?: number;
   ownerUid: string;
   name: string;
   gender: (typeof dogGenders)[number];
@@ -33,21 +36,22 @@ type TestDog = {
 };
 
 type TestUserDog = {
-  item: UserDogsTableItems;
+  user: TestUser;
+  dog: TestDog;
   updateItem: { isAccepted: boolean };
 };
 
 type TestUser = {
   uid: string;
-  invitedDogIds: string[];
-  acceptedDogIds: string[];
+  invitedDogs: TestDog[];
+  acceptedDogs: TestDog[];
 };
 
 const testUsers: TestUser[] = [...Array(numberOfUser).keys()].map((i: number) => {
   return {
     uid: randomUUID() as string,
-    invitedDogIds: [] as string[],
-    acceptedDogIds: [] as string[],
+    invitedDogs: [] as TestDog[],
+    acceptedDogs: [] as TestDog[],
   };
 });
 
@@ -61,14 +65,12 @@ const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
     gender: dogGenders[i % 2],
     size: dog3Sizes[i % 3],
   };
-  const id = randomUUID() as string;
   const ownerUidIndex = Math.floor(Math.random() * numberOfUser);
   const ownerUid = testUsers[ownerUidIndex].uid;
   return {
     invitedUids: [] as string[],
     memberUids: [] as string[],
     item: {
-      id,
       ownerUid,
       ...reqBody,
     },
@@ -89,25 +91,16 @@ const testUserDogs: TestUserDog[] = [...Array(numberOfUserDogs).keys()].map((i: 
     if (ownerUid !== uid && !dog.invitedUids.includes(uid)) {
       const updateItem = { isAccepted: false };
       dog.invitedUids.push(uid);
-      user.invitedDogIds.push(dog.item.id);
+      user.invitedDogs.push(dog);
       if (i % 2 === 0) {
         updateItem.isAccepted = true;
         dog.memberUids.push(uid);
-        user.acceptedDogIds.push(dog.item.id);
+        user.acceptedDogs.push(dog);
       }
       return {
-        item: {
-          uid,
-          ownerUid,
-          dogId: dog.item.id,
-          isAccepted: false,
-          isAnswered: false,
-        },
-        updateItem: {
-          uid,
-          dogId: dog.item.id,
-          ...updateItem,
-        },
+        user,
+        dog,
+        updateItem,
       };
     }
   }
@@ -117,7 +110,8 @@ await test("UserDog Test", async (t) => {
   await test("Create Dogs for Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        await dogModel.postItemCommand<TestDogTableItems>(testDog.item);
+        const id = await dogModel.postItemCommand<TestDogTableItems>(testDog.item);
+        testDog.item.id = id;
       })
     );
     strict.ok(true);
@@ -127,7 +121,14 @@ await test("UserDog Test", async (t) => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
         try {
-          await userDogModel.postItemCommand<UserDogsTableItems>(testUserDog.item);
+          const item = {
+            dogId: testUserDog.dog.item.id,
+            uid: testUserDog.user.uid,
+            ownerUid: testUserDog.dog.item.ownerUid,
+            isAccepted: false,
+            isAnswered: false,
+          };
+          await userDogModel.postItemCommand<UserDogsTableItems>(item);
         } catch (e) {
           strict.fail(e);
         }
@@ -141,7 +142,8 @@ await test("UserDog Test", async (t) => {
       testUsers.map(async (user) => {
         const userdogs = await userDogModel.getNotification(user.uid);
         const dogIds = userdogs.map((userdog) => userdog.dogId);
-        strict.deepStrictEqual(dogIds.sort(), user.invitedDogIds.sort());
+        const invitedDogIds = user.invitedDogs.map((dog) => dog.item.id);
+        strict.deepStrictEqual(dogIds.sort(), invitedDogIds.sort());
       })
     );
   });
@@ -149,7 +151,14 @@ await test("UserDog Test", async (t) => {
   await test("Update UserDog", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
-        await userDogModel.update({ ...testUserDog.item, ...testUserDog.updateItem });
+        const item = {
+          dogId: testUserDog.dog.item.id,
+          uid: testUserDog.user.uid,
+          ownerUid: testUserDog.dog.item.ownerUid,
+          isAnswered: true,
+          ...testUserDog.updateItem,
+        };
+        await userDogModel.update(item);
       })
     );
     strict.ok(true);
@@ -160,7 +169,8 @@ await test("UserDog Test", async (t) => {
       testUsers.map(async (user) => {
         const dogs = await userDogModel.getDogsFromUid(user.uid);
         const dogIds = dogs.map((dog) => dog.dogId);
-        strict.deepStrictEqual(dogIds.sort(), user.acceptedDogIds.sort());
+        const acceptedDogIds = user.acceptedDogs.map((dog) => dog.item.id);
+        strict.deepStrictEqual(dogIds.sort(), acceptedDogIds.sort());
       })
     );
   });
@@ -180,16 +190,16 @@ await test("UserDog Test", async (t) => {
     try {
       await userDogModel.deleteWithOwnerValidation(
         {
-          dogId: deleteUserdog.item.dogId,
-          uid: deleteUserdog.item.uid,
+          dogId: deleteUserdog.dog.item.id,
+          uid: deleteUserdog.user.uid,
         },
-        deleteUserdog.item.ownerUid
+        deleteUserdog.dog.item.ownerUid
       );
       await userDogModel.deleteItemsWithoutOwnerValidation(
         rest.map((userdog) => {
           return {
-            dogId: userdog.item.dogId,
-            uid: userdog.item.uid,
+            dogId: userdog.dog.item.id,
+            uid: userdog.user.uid,
           };
         })
       );
@@ -199,3 +209,18 @@ await test("UserDog Test", async (t) => {
     }
   });
 });
+
+console.log("Check Table After Test");
+await Promise.all(
+  [dogModel, userDogModel].map(async (model) => {
+    try {
+      const command = new DescribeTableCommand({
+        TableName: model.tableName,
+      });
+      const output = await DBClient.send(command);
+      console.log(output.Table);
+    } catch (e) {
+      console.log(e);
+    }
+  })
+);

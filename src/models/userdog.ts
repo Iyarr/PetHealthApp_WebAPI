@@ -63,7 +63,7 @@ class UserDogs extends Model {
     return items;
   }
 
-  async getUsersFromDogId(dogId: string) {
+  async getUsersFromDogId(dogId: number) {
     const command = new QueryCommand({
       TableName: this.tableName,
       IndexName: "dogIdIndex",
@@ -108,7 +108,7 @@ class UserDogs extends Model {
     return items;
   }
 
-  async getUserDogsPKToDeleteDog(dogId: string) {
+  async getUserDogsPKToDeleteDog(dogId: number) {
     const command = new QueryCommand({
       TableName: this.tableName,
       IndexName: "dogIdIndex",
@@ -149,6 +149,7 @@ class UserDogs extends Model {
       ExpressionAttributeValues: {
         ":ownerUid": this.createAttributeValue(ownerUid),
       },
+      ReturnValues: "ALL_OLD",
     });
 
     await DBClient.send(command);
