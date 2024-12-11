@@ -11,8 +11,12 @@ import { userDogModel } from "../models/userdog.js";
 
 export const userdogController = {
   async create(req: Request, res: Response) {
+    const params = {
+      ...req.body,
+      dogId: Number(req.body.dogId),
+    };
     const userdog = {
-      ...(req.body as UserDogPOSTRequestBody),
+      ...params,
       ownerUid: res.locals.uid as string,
       isAccepted: false,
       isAnswered: false,
@@ -26,9 +30,12 @@ export const userdogController = {
   },
 
   async readUids(req: Request, res: Response) {
+    const params = {
+      ...req.params,
+      dogId: Number(req.params.dogId),
+    };
     try {
-      const reqParams = req.params as UserDogsGETUsersRequestParams;
-      const userdogs = await userDogModel.getUsersFromDogId(reqParams.dogId);
+      const userdogs = await userDogModel.getUsersFromDogId(params.dogId);
       res
         .status(200)
         .json({ message: "OK", data: { users: userdogs.map((userdog) => userdog.uid) } });
@@ -39,7 +46,8 @@ export const userdogController = {
 
   async update(req: Request, res: Response) {
     const userdog = {
-      ...(req.params as UserDogPUTRequestParams),
+      uid: req.params.uid,
+      dogId: Number(req.params.dogId),
       ownerUid: res.locals.uid as string,
       ...(req.body as UserDogPUTRequestBody),
       isAnswered: true,
@@ -53,7 +61,10 @@ export const userdogController = {
   },
 
   async delete(req: Request, res: Response) {
-    const params = req.params as UserDogsDELETERequestParams;
+    const params = {
+      ...(req.params as UserDogsDELETERequestParams),
+      dogId: Number(req.params.dogId),
+    };
     const uid = res.locals.uid as string;
     try {
       await userDogModel.deleteWithOwnerValidation(params, uid);

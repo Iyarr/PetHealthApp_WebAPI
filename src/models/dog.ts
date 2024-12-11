@@ -8,6 +8,7 @@ import {
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 import { DogPUTRequestBody } from "../types/dog.js";
+import { dogsTablePK } from "../common/dynamodb.js";
 
 class DogModel extends Model {
   constructor() {
@@ -15,34 +16,24 @@ class DogModel extends Model {
   }
 
   async postItemCommand<T extends object>(item: T) {
-    // 重複チェックのための条件式を作成
-    const expressionAttributeNames: Record<string, string> = {};
-    const conditionExpression = Object.keys(item)
-      .map((key) => {
-        expressionAttributeNames[`#${key}`] = key;
-        return `attribute_not_exists(#${key})`;
-      })
-      .join(" AND ");
+    const id = await this.addPKIncrement();
 
     const command = new PutItemCommand({
       TableName: this.tableName,
-      Item: this.formatItemForCommand(item),
-      ConditionExpression: conditionExpression,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ReturnValues: "ALL_OLD",
+      Item: this.formatItemForCommand({ ...item, id }),
+      ConditionExpression: dogsTablePK.map((key) => `attribute_not_exists(${key})`).join(" AND "),
     });
 
     try {
-      const result = await DBClient.send(command);
-      if (result.Attributes !== undefined) {
-        throw new Error("Existing item updated mistakenly");
-      }
+      await DBClient.send(command);
     } catch (e) {
+      await this.subtractPKIncrement();
       throw new Error(e.message);
     }
+    return id;
   }
 
-  async updateItemCommand(id: string, item: DogPUTRequestBody, uid: string) {
+  async updateItemCommand(id: number, item: DogPUTRequestBody, ownerUid: string) {
     const updateItems: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, AttributeValue> = {};
@@ -51,12 +42,12 @@ class DogModel extends Model {
       expressionAttributeNames[`#${key}`] = key;
       expressionAttributeValues[`:${key}`] = this.createAttributeValue(value);
     }
-    expressionAttributeNames["#hostUid"] = "hostUid";
-    expressionAttributeValues[":hostUid"] = this.createAttributeValue(uid);
+    expressionAttributeNames["#ownerUid"] = "ownerUid";
+    expressionAttributeValues[":ownerUid"] = this.createAttributeValue(ownerUid);
     const command = new UpdateItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
-      ConditionExpression: "#hostUid = :hostUid",
+      ConditionExpression: "#ownerUid = :ownerUid",
       UpdateExpression: `set ${updateItems.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
@@ -67,14 +58,14 @@ class DogModel extends Model {
     return this.formatItemFromCommand(output.Attributes);
   }
 
-  async batchGetMyDogs(id: string) {
+  async batchGetMyDogs(id: number) {
     const command = new QueryCommand({
       TableName: this.tableName,
-      IndexName: "hostUidIndex",
+      IndexName: "ownerUidIndex",
       KeyConditions: {
-        hostUid: {
+        ownerUid: {
           ComparisonOperator: "EQ",
-          AttributeValueList: [{ S: id }],
+          AttributeValueList: [this.createAttributeValue(id)],
         },
       },
     });
@@ -82,21 +73,23 @@ class DogModel extends Model {
     return output.Items.map((item) => this.formatItemFromCommand(item));
   }
 
-  async deleteItemCommand(id: string, uid: string) {
+  async deleteItemCommand(id: number, uid: string) {
     const command = new DeleteItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
       ReturnValues: "ALL_OLD",
-      ConditionExpression: "#hostUid = :hostUid",
+      ConditionExpression: "#ownerUid = :ownerUid",
       ExpressionAttributeNames: {
-        "#hostUid": "hostUid",
+        "#ownerUid": "ownerUid",
       },
       ExpressionAttributeValues: {
-        ":hostUid": this.createAttributeValue(uid),
+        ":ownerUid": this.createAttributeValue(uid),
       },
     });
 
     const output = await DBClient.send(command);
+
+    await this.subtractPKIncrement();
     return this.formatItemFromCommand(output.Attributes);
   }
 }

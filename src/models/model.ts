@@ -1,5 +1,6 @@
 import {
   GetItemCommand,
+  UpdateItemCommand,
   PutItemCommand,
   BatchGetItemCommand,
   BatchWriteItemCommand,
@@ -49,6 +50,59 @@ export class Model {
     return items.flat();
   }
 
+  async addPKIncrement(incr: number = 1) {
+    const command = new UpdateItemCommand({
+      TableName: `${env.TABLE_PREFIX}IDKeys`,
+      Key: this.formatItemForCommand({ tableName: this.tableName }),
+      UpdateExpression: `SET #length = #length + :incr`,
+      ExpressionAttributeNames: {
+        "#length": "length",
+      },
+      ExpressionAttributeValues: {
+        ":incr": { N: incr.toString() },
+      },
+      ReturnValues: "ALL_NEW",
+    });
+
+    try {
+      const output = await DBClient.send(command);
+      const id = this.formatItemFromCommand(output.Attributes) as { length: number };
+      return id.length;
+    } catch (e) {
+      throw new Error(e);
+    }
+  }
+
+  async subtractPKIncrement(decr: number = 1) {
+    const command = new UpdateItemCommand({
+      TableName: `${env.TABLE_PREFIX}IDKeys`,
+      Key: this.formatItemForCommand({ tableName: this.tableName }),
+      UpdateExpression: `SET #length = #length - :decr`,
+      ExpressionAttributeNames: {
+        "#length": "length",
+      },
+      ExpressionAttributeValues: {
+        ":decr": { N: decr.toString() },
+      },
+    });
+
+    try {
+      await DBClient.send(command);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getPKIncrement() {
+    const command = new GetItemCommand({
+      TableName: `${env.TABLE_PREFIX}IDKeys`,
+      Key: this.formatItemForCommand({ tableName: this.tableName }),
+    });
+    const output = await DBClient.send(command);
+    const item = this.formatItemFromCommand(output.Item) as { tableName: string; length: number };
+    return item.length;
+  }
+
   // オブジェクトをDynamoDBのCommandでの形式に変換
   formatItemForCommand<T extends object>(item: T): Record<string, AttributeValue> {
     const formatedItem: Record<string, AttributeValue> = {};
@@ -62,11 +116,7 @@ export class Model {
   formatItemFromCommand(item: Record<string, AttributeValue>) {
     const formatedItem: object = {};
     for (const [key, value] of Object.entries(item)) {
-      ["BOOL", "N", "S"].forEach((type) => {
-        if (value.hasOwnProperty(type) && value[type]) {
-          formatedItem[key] = value[type];
-        }
-      });
+      formatedItem[key] = this.convertAttributeValueToPrimitive(value);
     }
     return formatedItem;
   }
@@ -81,9 +131,22 @@ export class Model {
     } else if (typeof value === "string") {
       attributeValue.S = value;
     } else {
-      throw new Error("Could not create AttributeValue");
+      throw new Error(`${typeof value} Values Could not create AttributeValue`);
     }
     return attributeValue;
+  }
+
+  // AttributeValueをプリミティブ型に変換
+  convertAttributeValueToPrimitive(value: AttributeValue) {
+    if (value.hasOwnProperty("BOOL")) {
+      return value.BOOL;
+    } else if (value.hasOwnProperty("N")) {
+      return Number(value.N);
+    } else if (value.hasOwnProperty("S")) {
+      return value.S;
+    } else {
+      throw new Error("Could not convert AttributeValue to primitive type");
+    }
   }
 
   sliceObjectList<T extends object>(items: T[], limit: number): T[][] {

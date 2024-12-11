@@ -1,4 +1,6 @@
 import {
+  userDogsTableNumberPK,
+  userDogsTableStringPK,
   userDogsTablePK,
   userDogsTableBooleanAttributes,
   userdogsTableStringAttributes,
@@ -6,16 +8,17 @@ import {
 import { ResponseBody, ResponseOnlyMessage } from "./utils.js";
 
 // POST
-type UserDogPOSTReqBodyKeyType = (typeof userDogsTablePK)[number];
 export type UserDogPOSTRequestBody = {
-  [K in UserDogPOSTReqBodyKeyType]: string;
+  [K in (typeof userDogsTableStringPK)[number]]: string;
+} & {
+  [K in (typeof userDogsTableNumberPK)[number]]: number;
 };
 
 export type UserDogPOSTResponseBody = ResponseOnlyMessage;
 
 // GET
 export type UserDogsGETUsersRequestParams = {
-  dogId: string;
+  dogId: number;
 };
 
 export type UserDogsGETUsersResponseBody = ResponseBody<{
@@ -23,13 +26,12 @@ export type UserDogsGETUsersResponseBody = ResponseBody<{
 }>;
 
 export type UserDogsGETDogsResponseBody = ResponseBody<{
-  dogs: string[];
+  dogs: number[];
 }>;
 
 // PUT
-type UserDogPUTReqBodyKeyType = (typeof userDogsTablePK)[number];
 export type UserDogPUTRequestParams = {
-  [K in UserDogPUTReqBodyKeyType]: string;
+  [K in (typeof userDogsTablePK)[number]]: string;
 };
 
 export type UserDogPUTRequestBody = {
@@ -48,12 +50,17 @@ export type UserDogsDELETERequestParams = {
 export type UserDogsDELETEResponseBody = ResponseOnlyMessage;
 
 // DynamoDB
+type userDogsTableNumberPK = (typeof userDogsTableNumberPK)[number];
+type userDogsTableStringPK = (typeof userDogsTableStringPK)[number];
 export type UserDogsTablePK = {
-  [K in (typeof userDogsTablePK)[number]]: string;
+  [K in (typeof userDogsTableStringPK)[number]]: string;
+} & {
+  [K in (typeof userDogsTableNumberPK)[number]]: number;
 };
 
-export type UserDogsTableItems = {
+export type UserDogsTableAttributes = {
   [K in (typeof userDogsTableBooleanAttributes)[number]]: boolean;
 } & {
   [K in (typeof userdogsTableStringAttributes)[number]]: string;
-} & UserDogsTablePK;
+};
+export type UserDogsTableItems = UserDogsTablePK & UserDogsTableAttributes;
