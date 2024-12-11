@@ -1,10 +1,11 @@
-import { test } from "node:test";
+import { describe, test } from "node:test";
 import { deepStrictEqual, strict } from "node:assert";
 import { DogPOSTRequestBody } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
 import { dogModel } from "../../models/dog.js";
-import { DescribeTableCommand } from "@aws-sdk/client-dynamodb";
+import { DescribeTableCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { DBClient } from "../../utils/dynamodb.js";
+import { env } from "../../utils/env.js";
 
 const numberOfUser = 10;
 const numberOfDogsPerUser = 10;
@@ -112,6 +113,15 @@ await test("Dog Test", async (t) => {
     );
   });
 
+  await test("PK Increment Test", async () => {
+    const length = await dogModel.getPKIncrement();
+    const describeTableCommand = new DescribeTableCommand({
+      TableName: dogModel.tableName,
+    });
+    const output = await DBClient.send(describeTableCommand);
+    deepStrictEqual(length, output.Table.ItemCount);
+  });
+
   await t.test("Delete dog", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
@@ -120,16 +130,6 @@ await test("Dog Test", async (t) => {
       })
     );
   });
-});
-
-await test("PK Increment Test", async () => {
-  const command = new DescribeTableCommand({
-    TableName: dogModel.tableName,
-  });
-  const output = await DBClient.send(command);
-  const tableLength = output.Table.ItemCount;
-  const length = await dogModel.getPKIncrement();
-  deepStrictEqual(length, tableLength);
 });
 
 console.log("Check Table After Test");

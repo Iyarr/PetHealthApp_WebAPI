@@ -5,8 +5,9 @@ import { userDogModel } from "../../models/userdog.js";
 import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
-import { DescribeTableCommand } from "@aws-sdk/client-dynamodb";
+import { DescribeTableCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { DBClient } from "../../utils/dynamodb.js";
+import { env } from "../../utils/env.js";
 
 const numberOfUser = 40;
 const numberOfDogsPerUser = 3;

@@ -73,26 +73,6 @@ export class Model {
     }
   }
 
-  async subtractPKIncrement(decr: number = 1) {
-    const command = new UpdateItemCommand({
-      TableName: `${env.TABLE_PREFIX}IDKeys`,
-      Key: this.formatItemForCommand({ tableName: this.tableName }),
-      UpdateExpression: `SET #length = #length - :decr`,
-      ExpressionAttributeNames: {
-        "#length": "length",
-      },
-      ExpressionAttributeValues: {
-        ":decr": { N: decr.toString() },
-      },
-    });
-
-    try {
-      await DBClient.send(command);
-    } catch (error) {
-      throw new Error(error);
-    }
-  }
-
   async getPKIncrement() {
     const command = new GetItemCommand({
       TableName: `${env.TABLE_PREFIX}IDKeys`,

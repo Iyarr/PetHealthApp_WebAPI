@@ -153,7 +153,6 @@ class UserDogs extends Model {
     });
 
     await DBClient.send(command);
-    await this.subtractPKIncrement();
   }
 
   async deleteItemsWithoutOwnerValidation(Items: UserDogsTablePK[]) {
@@ -172,7 +171,6 @@ class UserDogs extends Model {
         await DBClient.send(command);
       })
     );
-    await this.subtractPKIncrement(Items.length);
   }
 }
 

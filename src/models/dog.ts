@@ -27,7 +27,6 @@ class DogModel extends Model {
     try {
       await DBClient.send(command);
     } catch (e) {
-      await this.subtractPKIncrement();
       throw new Error(e.message);
     }
     return id;
@@ -88,8 +87,6 @@ class DogModel extends Model {
     });
 
     const output = await DBClient.send(command);
-
-    await this.subtractPKIncrement();
     return this.formatItemFromCommand(output.Attributes);
   }
 }
