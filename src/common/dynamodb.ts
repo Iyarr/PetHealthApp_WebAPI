@@ -14,22 +14,47 @@ export const userDogsTablePK = [...userDogsTableStringPK, ...userDogsTableNumber
 
 export const userDogsTableBooleanAttributes = ["isAccepted", "isAnswered"] as const;
 export const userdogsTableStringAttributes = ["ownerUid"] as const;
-export const userDogsTableItems = [
-  ...userDogsTablePK,
+export const userDogsTableAttributes = [
   ...userDogsTableBooleanAttributes,
   ...userdogsTableStringAttributes,
-];
+] as const;
+export const userDogsTableItems = [...userDogsTablePK, ...userDogsTableAttributes];
+
 export const userDogsTableIndex = "dogIdIndex";
 export const userDogsTableIndexKey = "dogId";
 
 // Diaries
-export const diariesTablePK = ["dogId", "date"] as const;
-export const diariesTableItems = ["itemId", "itemSelectedOptionId", "createdUid"] as const;
+export const diariesTableStringPK = ["date"] as const;
+export const diariesTableNumberPK = ["dogId"] as const;
+export const diariesTablePK = [...diariesTableStringPK, ...diariesTableNumberPK] as const;
 
-// Items
-export const itemsTablePK = "id";
-export const itemsTableItems = ["name"] as const;
+export const diariesTableStringAttributes = ["memo", "createdUid"] as const;
+export const diariesTableNumberListAttributes = ["itemIds"] as const;
+export const diariesTableAttributes = [
+  ...diariesTableStringAttributes,
+  ...diariesTableNumberListAttributes,
+];
+export const diariesTableItems = [...diariesTablePK, ...diariesTableAttributes] as const;
 
-// Options
-export const optionsTablePK = ["itemId", "optionId"] as const;
-export const optionsTableItems = ["name", "level"] as const;
+// DiaryItems
+export const diaryItemsTableNumberPK = ["id"] as const;
+export const diaryItemsTablePK = [...diaryItemsTableNumberPK] as const;
+
+export const diaryItemsTableStringAttributes = ["name"] as const;
+export const diaryItemsTableAttributes = [...diaryItemsTableStringAttributes] as const;
+export const diaryItemsTableItems = [...diaryItemsTablePK, ...diaryItemsTableAttributes] as const;
+
+// DiaryItemOptions
+export const diaryItemOptionsTableNumberPK = ["itemId", "optionId"] as const;
+export const diaryItemOptionsTablePK = [...diaryItemOptionsTableNumberPK] as const;
+
+export const diaryItemOptionsTableNumberAttributes = ["level"] as const;
+export const diaryItemOptionsTableStringAttributes = ["name"] as const;
+export const diaryItemOptionsTableAttributes = [
+  ...diaryItemOptionsTableNumberAttributes,
+  ...diaryItemOptionsTableStringAttributes,
+];
+export const diaryItemOptionsTableItems = [
+  ...diaryItemOptionsTablePK,
+  ...diaryItemOptionsTableAttributes,
+] as const;

@@ -1,10 +1,13 @@
 import {
-  diariesTablePK,
-  diariesTableItems,
-  itemsTablePK,
-  itemsTableItems,
-  optionsTablePK,
-  optionsTableItems,
+  diariesTableNumberPK,
+  diariesTableStringPK,
+  diariesTableNumberListAttributes,
+  diariesTableStringAttributes,
+  diaryItemsTableNumberPK,
+  diaryItemsTableItems,
+  diaryItemOptionsTableNumberPK,
+  diaryItemOptionsTableNumberAttributes,
+  diaryItemOptionsTableStringAttributes,
 } from "../common/dynamodb.js";
 // Request
 export type DiaryPOSTRequestBody = {
@@ -46,28 +49,53 @@ export type DiaryDELETERequestParams = {
 
 // DynamoDB
 // Diaries
-export type DiaryTablePKObjectType = {
-  [K in (typeof diariesTablePK)[number]]: string;
+export type DiariesTableNumberPK = {
+  [K in (typeof diariesTableNumberPK)[number]]: number;
+};
+export type DiariesTableStringPK = {
+  [K in (typeof diariesTableStringPK)[number]]: string;
 };
 
-export type DiaryTableItemsObjectType = {
-  [K in (typeof diariesTableItems)[number]]: string;
+export type DiariesTablePK = DiariesTableNumberPK & DiariesTableStringPK;
+
+export type DiariesTableStringAttributes = {
+  [K in (typeof diariesTableStringAttributes)[number]]: string;
+};
+export type DiariesTableNumberListAttributes = {
+  [K in (typeof diariesTableNumberListAttributes)[number]]: number[];
+};
+export type DiariesTableAttributes = DiariesTableStringAttributes &
+  DiariesTableNumberListAttributes;
+
+export type DiariesTableItems = DiariesTablePK & DiariesTableAttributes;
+// DiaryItems
+export type DiaryItemsTableNumberPK = {
+  [K in (typeof diaryItemsTableNumberPK)[number]]: number;
 };
 
-// Items
-export type ItemsTablePKObjectType = {
-  [K in (typeof itemsTablePK)[number]]: string;
+export type DiaryItemsTablePK = DiaryItemsTableNumberPK;
+
+export type DiaryItemsTableAttributes = {
+  [K in (typeof diaryItemsTableItems)[number]]: string;
 };
 
-export type ItemsTableItemsObjectType = {
-  [K in (typeof itemsTableItems)[number]]: string;
+export type DiaryItemsTableItems = DiariesTablePK & DiariesTableAttributes;
+// DiaryItemOptions
+export type DiaryItemOptionsTableNumberPK = {
+  [K in (typeof diaryItemOptionsTableNumberPK)[number]]: number;
 };
 
-// Options
-export type OptionsTablePKObjectType = {
-  [K in (typeof optionsTablePK)[number]]: string;
+export type DiaryItemOptionsTablePK = DiaryItemOptionsTableNumberPK;
+
+export type DiaryItemOptionsTableNumberAttributes = {
+  [K in (typeof diaryItemOptionsTableNumberAttributes)[number]]: number;
 };
 
-export type OptionsTableItemsObjectType = {
-  [K in (typeof optionsTableItems)[number]]: string;
+export type DiaryItemOptionsTableStringAttributes = {
+  [K in (typeof diaryItemOptionsTableStringAttributes)[number]]: string;
 };
+
+export type DiaryItemOptionsTableAttributes = DiaryItemOptionsTableNumberAttributes &
+  DiaryItemOptionsTableStringAttributes;
+
+export type DiaryItemOptionsTableItems = DiaryItemOptionsTablePK & DiaryItemOptionsTableAttributes;

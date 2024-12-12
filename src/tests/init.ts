@@ -83,7 +83,7 @@ async function createIDKeysTable() {
   await DBClient.send(setUpCommand);
 }
 
-async function createDiaryTable() {
+async function createDiariesTable() {
   const createTableCommand = new CreateTableCommand({
     AttributeDefinitions: [
       { AttributeName: "dogId", AttributeType: "S" },
@@ -100,28 +100,28 @@ async function createDiaryTable() {
   await DBClient.send(createTableCommand);
 }
 
-async function createItemTable() {
+async function createDiaryItemsTable() {
   const createTableCommand = new CreateTableCommand({
-    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "S" }],
+    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "N" }],
     KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
-    TableName: `${env.TABLE_PREFIX}Items`,
+    TableName: `${env.TABLE_PREFIX}DiaryItems`,
     BillingMode: "PAY_PER_REQUEST",
   });
 
   await DBClient.send(createTableCommand);
 }
 
-async function createOptionTable() {
+async function createDiaryItemOptionsTable() {
   const createTableCommand = new CreateTableCommand({
     AttributeDefinitions: [
-      { AttributeName: "itemId", AttributeType: "S" },
-      { AttributeName: "optionId", AttributeType: "S" },
+      { AttributeName: "itemId", AttributeType: "N" },
+      { AttributeName: "optionId", AttributeType: "N" },
     ],
     KeySchema: [
       { AttributeName: "itemId", KeyType: "HASH" },
       { AttributeName: "optionId", KeyType: "RANGE" },
     ],
-    TableName: `${env.TABLE_PREFIX}Options`,
+    TableName: `${env.TABLE_PREFIX}DiaryItemOptions`,
     BillingMode: "PAY_PER_REQUEST",
   });
 
@@ -146,11 +146,14 @@ if (!response.TableNames.includes(`${env.TABLE_PREFIX}IDKeys`)) {
   console.log("IDKeys table created");
 }
 if (!response.TableNames.includes(`${env.TABLE_PREFIX}Diaries`)) {
-  await createDiaryTable();
+  await createDiariesTable();
+  console.log("Diaries table created");
 }
-if (!response.TableNames.includes(`${env.TABLE_PREFIX}Items`)) {
-  await createItemTable();
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}DiaryItems`)) {
+  await createDiaryItemsTable();
+  console.log("DiaryItems table created");
 }
-if (!response.TableNames.includes(`${env.TABLE_PREFIX}Options`)) {
-  await createOptionTable();
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}DiaryItemOptions`)) {
+  await createDiaryItemOptionsTable();
+  console.log("DiaryItemOptions table created");
 }
