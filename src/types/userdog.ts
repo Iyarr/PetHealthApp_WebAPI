@@ -26,7 +26,13 @@ export type UserDogsGETUsersResponseBody = ResponseBody<{
 }>;
 
 export type UserDogsGETDogsResponseBody = ResponseBody<{
-  dogs: number[];
+  dogs: {
+    id: number;
+    ownerUid: string;
+    name: string;
+    gender: string;
+    size: string;
+  }[];
 }>;
 
 // PUT

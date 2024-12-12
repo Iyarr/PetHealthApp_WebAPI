@@ -3,5 +3,5 @@ import { Router } from "express";
 
 export const userRouter = Router();
 
-userRouter.get("/dogs", userController.readDogIds);
+userRouter.get("/dogs", userController.readDogs);
 userRouter.get("/notifi", userController.readNotification);

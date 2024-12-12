@@ -320,8 +320,11 @@ await test("UserDogs API Test", async () => {
         });
         const resBody: UserDogsGETDogsResponseBody = await response.json();
         const dogs = resBody.data.dogs;
-        const acceptedDogIds = user.acceptedDogs.map((dog) => dog.item.id);
-        strict.deepStrictEqual(dogs.sort(), acceptedDogIds.sort());
+        const acceptedDogs = user.acceptedDogs.map((dog) => dog.item);
+        strict.deepStrictEqual(
+          dogs.sort((a, b) => a.id - b.id),
+          acceptedDogs.sort((a, b) => a.id - b.id)
+        );
       })
     );
   });
