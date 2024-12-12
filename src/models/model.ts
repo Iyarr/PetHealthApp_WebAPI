@@ -131,10 +131,13 @@ export class Model {
 
   sliceObjectList<T extends object>(items: T[], limit: number): T[][] {
     const slicedItems: T[][] = [];
-    for (let i = 0; i < items.length; i += limit) {
+    for (let i = 0; ; i += limit) {
+      if (i + limit >= items.length) {
+        slicedItems.push(items.slice(i));
+        break;
+      }
       slicedItems.push(items.slice(i, i + limit));
     }
-    slicedItems.push(items.slice(-1 * (items.length % limit)));
     return slicedItems;
   }
 }
