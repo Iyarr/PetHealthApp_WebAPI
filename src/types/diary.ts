@@ -1,8 +1,10 @@
 import {
   diariesTableNumberPK,
   diariesTableStringPK,
+  diariesTablePK,
   diariesTableNumberListAttributes,
   diariesTableStringAttributes,
+  diariesTableAttributes,
   diaryItemsTableNumberPK,
   diaryItemsTableItems,
   diaryItemOptionsTableNumberPK,
@@ -11,18 +13,15 @@ import {
 } from "../common/dynamodb.js";
 // Request
 export type DiaryPOSTRequestBody = {
-  title: string;
-  body: string;
+  [K in (typeof diariesTableAttributes)[number]]: string;
 };
 
 export type DiaryPOSTRequestParams = {
-  dogId: string;
-  date: string;
+  [K in (typeof diariesTablePK)[number]]: string;
 };
 
 export type DiaryGETRequestParams = {
-  dogId: string;
-  date: string;
+  [K in (typeof diariesTablePK)[number]]: string;
 };
 
 export type DiaryGETMonthRequestParams = {
@@ -31,18 +30,15 @@ export type DiaryGETMonthRequestParams = {
 };
 
 export type DiaryPUTRequestParams = {
-  dogId: string;
-  date: string;
+  [K in (typeof diariesTablePK)[number]]: string;
 };
 
 export type DiaryPUTRequestBody = {
-  title: string;
-  body: string;
+  [K in (typeof diariesTableAttributes)[number]]: string;
 };
 
 export type DiaryDELETERequestParams = {
-  dogId: string;
-  date: string;
+  [K in (typeof diariesTablePK)[number]]: string;
 };
 
 // Response

@@ -14,8 +14,11 @@ import {
 
 export const diaryController = {
   async create(req: Request, res: Response) {
+    const params = req.params as DiaryPOSTRequestParams;
+    const body = req.body as DiaryPOSTRequestBody;
     res.status(201).json({ message: "created" });
   },
+
   async read(req: Request, res: Response) {
     const params = req.params as DiaryGETRequestParams;
     const output = await diaryModel.getItemCommand(params);
@@ -24,6 +27,7 @@ export const diaryController = {
       data: output,
     });
   },
+
   async readMonth(req: Request, res: Response) {
     const params = req.params as DiaryGETMonthRequestParams;
     const uid = res.locals.uid;
@@ -33,9 +37,13 @@ export const diaryController = {
     const userdog = await userDogModel.getDogsFromUid(uid);
     res.status(200).json({ message: "OK" });
   },
+
   async update(req: Request, res: Response) {
+    const params = req.params as DiaryPUTRequestParams;
+    const body = req.body as DiaryPUTRequestBody;
     res.status(200).json({ message: "OK" });
   },
+
   async delete(req: Request, res: Response) {
     const params = req.params as DiaryDELETERequestParams;
     await diaryModel.deleteItemCommand(params);
