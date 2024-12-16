@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { randomUUID } from "crypto";
 import { diaryModel } from "../models/diary.js";
+import { diaryItemModel } from "../models/diaryitem.js";
 import { userDogModel } from "../models/userdog.js";
 import {
   DiaryPOSTRequestBody,
@@ -11,21 +11,38 @@ import {
   DiaryPUTRequestBody,
   DiaryDELETERequestParams,
 } from "../types/diary.js";
+import { diaryItemDetailsTableAttributes } from "../common/dynamodb.js";
 
 export const diaryController = {
   async create(req: Request, res: Response) {
     const params = req.params as DiaryPOSTRequestParams;
     const body = req.body as DiaryPOSTRequestBody;
-    res.status(201).json({ message: "created" });
+    const userDogs = await userDogModel.getDogsFromUid(res.locals.uid);
+    userDogs.forEach(async (userdog) => {
+      if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
+        const itemId = await diaryItemModel.postItem(body);
+        await diaryModel.postItemCommand({ ...body, itemId: itemId });
+        res.status(201).json({ message: "created" });
+        return;
+      }
+    });
+    res.status(404).json({ message: "Not Found" });
   },
 
   async read(req: Request, res: Response) {
     const params = req.params as DiaryGETRequestParams;
-    const output = await diaryModel.getItemCommand(params);
-    res.status(200).json({
-      message: "OK",
-      data: output,
+    const userDogs = await userDogModel.getDogsFromUid(res.locals.uid);
+    userDogs.forEach(async (userdog) => {
+      if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
+        const output = await diaryModel.getItemCommand({ id: Number(params.dogId) });
+        res.status(200).json({
+          message: "OK",
+          data: output,
+        });
+        return;
+      }
     });
+    res.status(404).json({ message: "Not Found" });
   },
 
   async readMonth(req: Request, res: Response) {
@@ -41,12 +58,27 @@ export const diaryController = {
   async update(req: Request, res: Response) {
     const params = req.params as DiaryPUTRequestParams;
     const body = req.body as DiaryPUTRequestBody;
-    res.status(200).json({ message: "OK" });
+    const userDogs = await userDogModel.getDogsFromUid(res.locals.uid);
+    userDogs.forEach(async (userdog) => {
+      if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
+        await diaryModel.putItemCommand(body);
+        res.status(200).json({ message: "OK" });
+        return;
+      }
+    });
+    res.status(404).json({ message: "Not Found" });
   },
 
   async delete(req: Request, res: Response) {
     const params = req.params as DiaryDELETERequestParams;
-    await diaryModel.deleteItemCommand(params);
-    res.status(200).json({ message: "OK" });
+    const userDogs = await userDogModel.getDogsFromUid(res.locals.uid);
+    userDogs.forEach(async (userdog) => {
+      if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
+        await diaryModel.deleteItemCommand(params);
+        res.status(200).json({ message: "OK" });
+        return;
+      }
+    });
+    res.status(404).json({ message: "Not Found" });
   },
 };

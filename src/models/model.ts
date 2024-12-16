@@ -3,7 +3,6 @@ import {
   UpdateItemCommand,
   PutItemCommand,
   BatchGetItemCommand,
-  BatchWriteItemCommand,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
 import { env } from "../utils/env.js";
@@ -14,6 +13,21 @@ export class Model {
   tableName: string;
   constructor(tableName: string) {
     this.tableName = env.TABLE_PREFIX + tableName;
+  }
+
+  async postItem<T extends object>(item: T) {
+    const id = this.addPKIncrement();
+    const command = new PutItemCommand({
+      TableName: this.tableName,
+      Item: this.formatItemForCommand({ ...item, id }),
+    });
+
+    try {
+      await DBClient.send(command);
+      return id;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async getItemCommand<T extends object>(pk: T) {

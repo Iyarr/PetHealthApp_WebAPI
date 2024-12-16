@@ -1,10 +1,10 @@
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
 
-class OptionModel extends Model {
+class DiaryItemModel extends Model {
   constructor() {
-    super("Options");
+    super("DiaryItems");
   }
 }
 
-export const optionModel = new OptionModel();
+export const diaryItemModel = new DiaryItemModel();

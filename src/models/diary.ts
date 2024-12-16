@@ -9,26 +9,23 @@ class DiaryModel extends Model {
   }
 
   async postItemCommand<T extends object>(item: T) {
+    const whetherComplexPKIsNotExist = diariesTablePK
+      .map((key) => `(attribute_not_exists(#${key}))`)
+      .join(" OR ");
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),
-      ConditionExpression: diariesTablePK
-        .map((key) => {
-          return `(attribute_not_exists(#${key}))`;
-        })
-        .join(" OR "),
-      ExpressionAttributeNames: diariesTablePK.reduce((acc, key) => {
-        acc[`#${key}`] = key;
-        return acc;
-      }, {}),
-      ReturnValues: "ALL_OLD",
+      ExpressionAttributeNames: diariesTablePK.reduce(
+        (acc, key) => ({ ...acc, [`#${key}`]: key }),
+        {}
+      ),
+      ConditionExpression: whetherComplexPKIsNotExist,
     });
 
     try {
-      const output = await DBClient.send(command);
-      return this.formatItemFromCommand(output.Attributes);
+      await DBClient.send(command);
     } catch (e) {
-      throw new Error(e.message);
+      throw new Error(e);
     }
   }
 

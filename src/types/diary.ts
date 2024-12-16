@@ -2,11 +2,13 @@ import {
   diariesTableNumberPK,
   diariesTableStringPK,
   diariesTablePK,
-  diariesTableNumberListAttributes,
+  diariesTableNumberAttributes,
   diariesTableStringAttributes,
   diariesTableAttributes,
   diaryItemsTableNumberPK,
-  diaryItemsTableItems,
+  diaryItemsTableNumberAttributes,
+  diaryItemDetailsTableNumberPK,
+  diaryItemDetailsTableStringAttributes,
   diaryItemOptionsTableNumberPK,
   diaryItemOptionsTableNumberAttributes,
   diaryItemOptionsTableStringAttributes,
@@ -57,11 +59,10 @@ export type DiariesTablePK = DiariesTableNumberPK & DiariesTableStringPK;
 export type DiariesTableStringAttributes = {
   [K in (typeof diariesTableStringAttributes)[number]]: string;
 };
-export type DiariesTableNumberListAttributes = {
-  [K in (typeof diariesTableNumberListAttributes)[number]]: number[];
+export type DiariesTableNumberAttributes = {
+  [K in (typeof diariesTableNumberAttributes)[number]]: number;
 };
-export type DiariesTableAttributes = DiariesTableStringAttributes &
-  DiariesTableNumberListAttributes;
+export type DiariesTableAttributes = DiariesTableStringAttributes & DiariesTableNumberAttributes;
 
 export type DiariesTableItems = DiariesTablePK & DiariesTableAttributes;
 // DiaryItems
@@ -72,25 +73,33 @@ export type DiaryItemsTableNumberPK = {
 export type DiaryItemsTablePK = DiaryItemsTableNumberPK;
 
 export type DiaryItemsTableAttributes = {
-  [K in (typeof diaryItemsTableItems)[number]]: string;
+  [K in (typeof diaryItemsTableNumberAttributes)[number]]: number;
 };
 
-export type DiaryItemsTableItems = DiariesTablePK & DiariesTableAttributes;
+// DiaryItemDetails
+export type DiaryItemDetailsTableNumberPK = {
+  [K in (typeof diaryItemDetailsTableNumberPK)[number]]: number;
+};
+export type DiaryItemDetailsTablePK = DiaryItemDetailsTableNumberPK;
+
+export type DiaryItemDetailsTableStringAttributes = {
+  [K in (typeof diaryItemDetailsTableStringAttributes)[number]]: string;
+};
+export type DiaryItemDetailsTableAttributes = DiaryItemDetailsTableStringAttributes;
+
+export type DiaryItemDetailsTableItems = DiaryItemDetailsTablePK & DiaryItemDetailsTableAttributes;
 // DiaryItemOptions
 export type DiaryItemOptionsTableNumberPK = {
   [K in (typeof diaryItemOptionsTableNumberPK)[number]]: number;
 };
-
 export type DiaryItemOptionsTablePK = DiaryItemOptionsTableNumberPK;
 
 export type DiaryItemOptionsTableNumberAttributes = {
   [K in (typeof diaryItemOptionsTableNumberAttributes)[number]]: number;
 };
-
 export type DiaryItemOptionsTableStringAttributes = {
   [K in (typeof diaryItemOptionsTableStringAttributes)[number]]: string;
 };
-
 export type DiaryItemOptionsTableAttributes = DiaryItemOptionsTableNumberAttributes &
   DiaryItemOptionsTableStringAttributes;
 

@@ -2,6 +2,14 @@
 export const DynamoDBBatchWriteLimit = 25;
 export const DynamoDBBatchGetLimit = 100;
 export const AttributeTypeNames = ["S", "N", "BOOL"] as const;
+export const tableNames = [
+  "Dogs",
+  "UserDogs",
+  "Diaries",
+  "DiaryItems",
+  "DiaryItemDetails",
+  "DiaryItemOptions",
+] as const;
 
 // Tables
 export const dogsTablePK = ["id"] as const;
@@ -29,10 +37,10 @@ export const diariesTableNumberPK = ["dogId"] as const;
 export const diariesTablePK = [...diariesTableStringPK, ...diariesTableNumberPK] as const;
 
 export const diariesTableStringAttributes = ["memo", "createdUid"] as const;
-export const diariesTableNumberListAttributes = ["itemIds"] as const;
+export const diariesTableNumberAttributes = ["itemId"] as const;
 export const diariesTableAttributes = [
   ...diariesTableStringAttributes,
-  ...diariesTableNumberListAttributes,
+  ...diariesTableNumberAttributes,
 ];
 export const diariesTableItems = [...diariesTablePK, ...diariesTableAttributes] as const;
 
@@ -40,15 +48,26 @@ export const diariesTableItems = [...diariesTablePK, ...diariesTableAttributes] 
 export const diaryItemsTableNumberPK = ["id"] as const;
 export const diaryItemsTablePK = [...diaryItemsTableNumberPK] as const;
 
-export const diaryItemsTableStringAttributes = ["name"] as const;
-export const diaryItemsTableAttributes = [...diaryItemsTableStringAttributes] as const;
+export const diaryItemsTableNumberAttributes = ["detailId", "optionId"] as const;
+export const diaryItemsTableAttributes = [...diaryItemsTableNumberAttributes] as const;
 export const diaryItemsTableItems = [...diaryItemsTablePK, ...diaryItemsTableAttributes] as const;
 
+// DiaryItemDetails
+export const diaryItemDetailsTableNumberPK = ["id"] as const;
+export const diaryItemDetailsTablePK = [...diaryItemsTableNumberPK] as const;
+
+export const diaryItemDetailsTableStringAttributes = ["name"] as const;
+export const diaryItemDetailsTableAttributes = [...diaryItemDetailsTableStringAttributes] as const;
+export const diaryItemDetailsTableItems = [
+  ...diaryItemDetailsTablePK,
+  ...diaryItemDetailsTableAttributes,
+] as const;
+
 // DiaryItemOptions
-export const diaryItemOptionsTableNumberPK = ["itemId", "optionId"] as const;
+export const diaryItemOptionsTableNumberPK = ["id"] as const;
 export const diaryItemOptionsTablePK = [...diaryItemOptionsTableNumberPK] as const;
 
-export const diaryItemOptionsTableNumberAttributes = ["level"] as const;
+export const diaryItemOptionsTableNumberAttributes = ["itemId", "level"] as const;
 export const diaryItemOptionsTableStringAttributes = ["name"] as const;
 export const diaryItemOptionsTableAttributes = [
   ...diaryItemOptionsTableNumberAttributes,
