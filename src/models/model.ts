@@ -1,5 +1,6 @@
 import {
   GetItemCommand,
+  UpdateItemCommand,
   PutItemCommand,
   BatchGetItemCommand,
   BatchWriteItemCommand,
@@ -7,62 +8,12 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { env } from "../utils/env.js";
 import { DBClient } from "../utils/dynamodb.js";
+import { DynamoDBBatchWriteLimit } from "../common/dynamodb.js";
 
 export class Model {
   tableName: string;
   constructor(tableName: string) {
     this.tableName = env.TABLE_PREFIX + tableName;
-  }
-
-  async postItemCommand<T extends object>(item: T) {
-    // 重複チェックのための条件式を作成
-    const expressionAttributeNames: Record<string, string> = {};
-    const conditionExpression = Object.keys(item)
-      .map((key) => {
-        expressionAttributeNames[`#${key}`] = key;
-        return `attribute_not_exists(#${key})`;
-      })
-      .join(" AND ");
-
-    const command = new PutItemCommand({
-      TableName: this.tableName,
-      Item: this.formatItemForCommand(item),
-      ConditionExpression: conditionExpression,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ReturnValues: "ALL_OLD",
-    });
-
-    try {
-      const result = await DBClient.send(command);
-      if (result.Attributes !== undefined) {
-        throw new Error("Existing item updated mistakenly");
-      }
-    } catch (e) {
-      throw new Error(e.message);
-    }
-  }
-
-  // 項目を追加 or 削除できるのは25個まで
-  async batchWriteItemCommand<T extends object>(items: T[]) {
-    const requestItems: Record<string, object[]> = {};
-    requestItems[this.tableName] = [];
-    for (const item of items) {
-      requestItems[this.tableName].push({
-        PutRequest: {
-          Item: this.formatItemForCommand(item),
-        },
-      });
-    }
-    const command = new BatchWriteItemCommand({
-      RequestItems: requestItems,
-    });
-
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(items, result);
-      throw new Error("Failed to post item");
-    }
-    return result.UnprocessedItems;
   }
 
   async getItemCommand<T extends object>(pk: T) {
@@ -75,31 +26,61 @@ export class Model {
       const result = await DBClient.send(command);
       return this.formatItemFromCommand(result.Item);
     } catch (error) {
-      console.log(pk, error);
-      throw new Error("Failed to get response");
+      throw new Error(error);
     }
   }
 
-  // 項目を取得できるのは100個まで
   async batchGetItemCommand<T extends object>(pks: T[]) {
-    const keys: Record<string, AttributeValue>[] = [];
-    for (const pk of pks) {
-      keys.push(this.formatItemForCommand(pk));
-    }
-    const command = new BatchGetItemCommand({
-      RequestItems: {
-        [this.tableName]: {
-          Keys: keys,
-        },
+    const slicedPks = this.sliceObjectList(pks, DynamoDBBatchWriteLimit);
+    const items = await Promise.all(
+      slicedPks.map(async (pks) => {
+        const command = new BatchGetItemCommand({
+          RequestItems: {
+            [this.tableName]: {
+              Keys: pks.map((pk) => this.formatItemForCommand(pk)),
+            },
+          },
+        });
+
+        const output = await DBClient.send(command);
+        return output.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
+      })
+    );
+
+    return items.flat();
+  }
+
+  async addPKIncrement(incr: number = 1) {
+    const command = new UpdateItemCommand({
+      TableName: `${env.TABLE_PREFIX}IDKeys`,
+      Key: this.formatItemForCommand({ tableName: this.tableName }),
+      UpdateExpression: `SET #length = #length + :incr`,
+      ExpressionAttributeNames: {
+        "#length": "length",
       },
+      ExpressionAttributeValues: {
+        ":incr": { N: incr.toString() },
+      },
+      ReturnValues: "ALL_NEW",
     });
 
-    const result = await DBClient.send(command);
-    if (result.$metadata.httpStatusCode !== 200) {
-      console.log(pks, result);
-      throw new Error("Failed to get response");
+    try {
+      const output = await DBClient.send(command);
+      const id = this.formatItemFromCommand(output.Attributes) as { length: number };
+      return id.length;
+    } catch (e) {
+      throw new Error(e);
     }
-    return result.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
+  }
+
+  async getPKIncrement() {
+    const command = new GetItemCommand({
+      TableName: `${env.TABLE_PREFIX}IDKeys`,
+      Key: this.formatItemForCommand({ tableName: this.tableName }),
+    });
+    const output = await DBClient.send(command);
+    const item = this.formatItemFromCommand(output.Item) as { tableName: string; length: number };
+    return item.length;
   }
 
   // オブジェクトをDynamoDBのCommandでの形式に変換
@@ -115,11 +96,7 @@ export class Model {
   formatItemFromCommand(item: Record<string, AttributeValue>) {
     const formatedItem: object = {};
     for (const [key, value] of Object.entries(item)) {
-      ["BOOL", "N", "S"].forEach((type) => {
-        if (value.hasOwnProperty(type) && value[type]) {
-          formatedItem[key] = value[type];
-        }
-      });
+      formatedItem[key] = this.convertAttributeValueToPrimitive(value);
     }
     return formatedItem;
   }
@@ -134,8 +111,33 @@ export class Model {
     } else if (typeof value === "string") {
       attributeValue.S = value;
     } else {
-      throw new Error("Could not create AttributeValue");
+      throw new Error(`${typeof value} Values Could not create AttributeValue`);
     }
     return attributeValue;
+  }
+
+  // AttributeValueをプリミティブ型に変換
+  convertAttributeValueToPrimitive(value: AttributeValue) {
+    if (value.hasOwnProperty("BOOL")) {
+      return value.BOOL;
+    } else if (value.hasOwnProperty("N")) {
+      return Number(value.N);
+    } else if (value.hasOwnProperty("S")) {
+      return value.S;
+    } else {
+      throw new Error("Could not convert AttributeValue to primitive type");
+    }
+  }
+
+  sliceObjectList<T extends object>(items: T[], limit: number): T[][] {
+    const slicedItems: T[][] = [];
+    for (let i = 0; ; i += limit) {
+      if (i + limit >= items.length) {
+        slicedItems.push(items.slice(i));
+        break;
+      }
+      slicedItems.push(items.slice(i, i + limit));
+    }
+    return slicedItems;
   }
 }

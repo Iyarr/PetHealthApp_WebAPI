@@ -1,18 +1,16 @@
-import { json, Request, Response } from "express";
-import { randomUUID } from "crypto";
-import { DogPOSTRequestBody } from "../types/dog.js";
+import { Request, Response } from "express";
+import { DogPOSTRequestBody, DogPUTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
+import { userDogModel } from "../models/userdog.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    const id = randomUUID();
     const dog: DogPOSTRequestBody = {
-      id,
-      hostUid: res.locals.uid,
+      ownerUid: res.locals.uid,
       ...req.body,
     };
     try {
-      await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
+      const id = await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
       res.status(201).json({ message: "Dog created", data: { id } });
     } catch (e) {
       res.status(400).json({ message: e.message });
@@ -21,7 +19,7 @@ export const dogController = {
 
   async read(req: Request, res: Response) {
     try {
-      const dog = await dogModel.getItemCommand({ id: req.params.id });
+      const dog = await dogModel.getItemCommand({ id: Number(req.params.id) });
       res.status(200).json({ message: "OK", data: { dog } });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
@@ -29,23 +27,36 @@ export const dogController = {
   },
 
   async update(req: Request, res: Response) {
-    const dog: DogPOSTRequestBody = Object.assign({ hostUid: res.locals.uid }, req.body);
+    const dog: DogPUTRequestBody = req.body;
+    const id = Number(req.params.id);
+    const ownerUid = res.locals.uid;
     try {
-      const result = await dogModel.updateItemCommand(req.params.id, dog, res.locals.uid);
-      if (!result) {
+      const updatedItem = await dogModel.updateItemCommand(id, dog, ownerUid);
+      if (!updatedItem) {
         throw new Error("Dog not found");
       } else {
         res.status(200).json({ message: "Dog updated" });
       }
     } catch (e) {
-      //console.log(JSON.stringify(dog, null, 2));
       res.status(400).json({ message: e.message });
     }
   },
 
   async delete(req: Request, res: Response) {
     try {
-      await dogModel.deleteItemCommand(req.params.id, res.locals.uid);
+      const dogId = Number(req.params.id);
+      await dogModel.deleteItemCommand(dogId, res.locals.uid);
+      const userDogs = await userDogModel.getUserDogsPKToDeleteDog(dogId);
+      if (userDogs.length !== 0) {
+        await userDogModel.deleteItemsWithoutOwnerValidation(
+          userDogs.map((userDog) => {
+            return {
+              dogId: dogId,
+              uid: userDog.uid,
+            };
+          })
+        );
+      }
       res.status(200).json({ message: "Dog deleted" });
     } catch (e) {
       res.status(400).json({ message: e.message });

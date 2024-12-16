@@ -15,15 +15,20 @@ docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
   -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
 
 npm run build
-sleep 5
+find dist/ -name '*.js'
+echo "Building done"
+sleep 1
 node dist/tests/init.js
-sleep 5
+echo "DynamoDB initialized"
+sleep 1
 if [ "$1" == "unit" ]; then
-  find dist/tests/unit -name '*.js' | xargs node --test
+  find dist/tests/unit -name '*.js' | xargs node --test > result.txt 2>&1
 elif [ "$1" == "api" ]; then
-  nohup npm start >> result.txt 2>&1 &
+  nohup npm start > result.txt 2>&1 &
+  echo "Server started"
   bpid=$!
-  sleep 10
+  sleep 5
+  echo "Test started"
   node --test dist/tests/api.js
   kill $bpid
 fi
