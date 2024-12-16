@@ -22,9 +22,9 @@ node dist/tests/init.js
 echo "DynamoDB initialized"
 sleep 1
 if [ "$1" == "unit" ]; then
-  find dist/tests/unit -name '*.js' | xargs node --test > result.txt 2>&1
+  find dist/tests/unit -name '*.js' | xargs node --test > result.log 2>&1
 elif [ "$1" == "api" ]; then
-  nohup npm start > result.txt 2>&1 &
+  nohup npm start > result.log 2>&1 &
   echo "Server started"
   bpid=$!
   sleep 5

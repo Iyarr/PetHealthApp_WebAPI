@@ -77,3 +77,7 @@ export const diaryItemOptionsTableItems = [
   ...diaryItemOptionsTablePK,
   ...diaryItemOptionsTableAttributes,
 ] as const;
+
+// Message
+export const massageConditionCheckFailedException =
+  "ConditionalCheckFailedException: The conditional request failed";
