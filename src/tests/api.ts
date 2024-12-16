@@ -254,6 +254,7 @@ await test("UserDogs API Test", async () => {
       })
     );
   });
+
   await test("UserDogs post Test", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
@@ -276,6 +277,23 @@ await test("UserDogs API Test", async () => {
           console.log(await response.json());
         }
         strict.deepStrictEqual(response.status, 201);
+      })
+    );
+  });
+
+  await test("Create UserDog with Duplicate", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        const item: UserDogPOSTRequestBody = {
+          uid: testUserDog.user.item.uid,
+          dogId: testUserDog.dog.item.id,
+        };
+        const response = await fetch(`${url}/userdog`, {
+          method: "POST",
+          headers: headers(testUserDog.dog.owner.token),
+          body: JSON.stringify(item),
+        });
+        strict.deepStrictEqual(response.status, 400);
       })
     );
   });
@@ -307,6 +325,26 @@ await test("UserDogs API Test", async () => {
           }
         );
         strict.deepStrictEqual(response.status, 200);
+      })
+    );
+  });
+
+  await test("Create UserDog again when not approved", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        if (testUserDog.updateItem.isAccepted) {
+          return;
+        }
+        const item: UserDogPOSTRequestBody = {
+          uid: testUserDog.user.item.uid,
+          dogId: testUserDog.dog.item.id,
+        };
+        const response = await fetch(`${url}/userdog`, {
+          method: "POST",
+          headers: headers(testUserDog.dog.owner.token),
+          body: JSON.stringify(item),
+        });
+        strict.deepStrictEqual(response.status, 201);
       })
     );
   });

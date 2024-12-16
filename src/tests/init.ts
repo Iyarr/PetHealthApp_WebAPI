@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { DBClient } from "../utils/dynamodb.js";
 import { env } from "../utils/env.js";
+import { tableNames } from "../common/dynamodb.js";
 
 async function createUserDogTable() {
   const createTableCommand = new CreateTableCommand({
@@ -68,11 +69,11 @@ async function createIDKeysTable() {
 
   const setUpCommand = new BatchWriteItemCommand({
     RequestItems: {
-      [tebleName]: ["Dogs", "UserDogs"].map((value) => {
+      [tebleName]: tableNames.map((name) => {
         return {
           PutRequest: {
             Item: {
-              tableName: { S: `${env.TABLE_PREFIX}${value}` },
+              tableName: { S: `${env.TABLE_PREFIX}${name}` },
               length: { N: "0" },
             },
           },
@@ -83,6 +84,55 @@ async function createIDKeysTable() {
   await DBClient.send(setUpCommand);
 }
 
+async function createDiariesTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [
+      { AttributeName: "dogId", AttributeType: "N" },
+      { AttributeName: "date", AttributeType: "S" },
+    ],
+    KeySchema: [
+      { AttributeName: "dogId", KeyType: "HASH" },
+      { AttributeName: "date", KeyType: "RANGE" },
+    ],
+    TableName: `${env.TABLE_PREFIX}Diaries`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
+
+async function createDiaryItemsTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "N" }],
+    KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
+    TableName: `${env.TABLE_PREFIX}DiaryItems`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
+
+async function createDiaryItemDetailsTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "N" }],
+    KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
+    TableName: `${env.TABLE_PREFIX}DiaryItemDetails`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
+
+async function createDiaryItemOptionsTable() {
+  const createTableCommand = new CreateTableCommand({
+    AttributeDefinitions: [{ AttributeName: "id", AttributeType: "N" }],
+    KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
+    TableName: `${env.TABLE_PREFIX}DiaryItemOptions`,
+    BillingMode: "PAY_PER_REQUEST",
+  });
+
+  await DBClient.send(createTableCommand);
+}
 console.log("Checking tables in the database");
 const listTablesCommand = new ListTablesCommand({});
 const response = await DBClient.send(listTablesCommand);
@@ -100,4 +150,20 @@ if (!response.TableNames.includes(`${env.TABLE_PREFIX}UserDogs`)) {
 if (!response.TableNames.includes(`${env.TABLE_PREFIX}IDKeys`)) {
   await createIDKeysTable();
   console.log("IDKeys table created");
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}Diaries`)) {
+  await createDiariesTable();
+  console.log("Diaries table created");
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}DiaryItems`)) {
+  await createDiaryItemsTable();
+  console.log("DiaryItems table created");
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}DiaryItemDetails`)) {
+  await createDiaryItemDetailsTable();
+  console.log("DiaryItemDetails table created");
+}
+if (!response.TableNames.includes(`${env.TABLE_PREFIX}DiaryItemOptions`)) {
+  await createDiaryItemOptionsTable();
+  console.log("DiaryItemOptions table created");
 }

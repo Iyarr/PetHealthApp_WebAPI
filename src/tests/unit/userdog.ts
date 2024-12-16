@@ -5,8 +5,9 @@ import { userDogModel } from "../../models/userdog.js";
 import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
-import { DescribeTableCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { DBClient } from "../../utils/dynamodb.js";
+import { massageConditionCheckFailedException } from "../../common/dynamodb.js";
 import { env } from "../../utils/env.js";
 
 const numberOfUser = 40;
@@ -148,6 +149,26 @@ await test("UserDog Test", async (t) => {
     );
   });
 
+  await test("Create UserDog with Duplicate", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        try {
+          const item = {
+            dogId: testUserDog.dog.item.id,
+            uid: testUserDog.user.uid,
+            ownerUid: testUserDog.dog.item.ownerUid,
+            isAccepted: false,
+            isAnswered: false,
+          };
+          await userDogModel.postItemCommand<UserDogsTableItems>(item);
+          strict.fail("Conditional Check Failed Exception is not thrown");
+        } catch (e) {
+          strict.deepStrictEqual(e.message, massageConditionCheckFailedException);
+        }
+      })
+    );
+  });
+
   await test("Update UserDog", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
@@ -162,6 +183,22 @@ await test("UserDog Test", async (t) => {
       })
     );
     strict.ok(true);
+  });
+
+  await test("Create UserDog again when not approved", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        if (testUserDog.updateItem.isAccepted) return;
+        const item = {
+          dogId: testUserDog.dog.item.id,
+          uid: testUserDog.user.uid,
+          ownerUid: testUserDog.dog.item.ownerUid,
+          isAccepted: false,
+          isAnswered: false,
+        };
+        await userDogModel.postItemCommand<UserDogsTableItems>(item);
+      })
+    );
   });
 
   await test("Get Dogs from Uid", async () => {
