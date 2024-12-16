@@ -17,8 +17,8 @@ class UserDogs extends Model {
 
   async postItemCommand<T extends object>(item: T) {
     const whetherComplexPKIsNotExist = userDogsTablePK
-      .map((key) => `(attribute_not_exists(#${key}))`)
-      .join(" OR ");
+      .map((key) => `attribute_not_exists(#${key})`)
+      .join(" AND ");
     const isNotAccepted = `#isAccepted = :false AND #isAnswered = :true`;
     const command = new PutItemCommand({
       TableName: this.tableName,
@@ -26,9 +26,10 @@ class UserDogs extends Model {
       ReturnValues: "ALL_OLD",
       ConditionExpression: `(${whetherComplexPKIsNotExist}) OR (${isNotAccepted})`,
       ExpressionAttributeNames: {
-        ...userDogsTableBooleanAttributes.reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {}),
         ...userDogsTablePK.reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {}),
+        ...userDogsTableBooleanAttributes.reduce((acc, key) => ({ ...acc, [`#${key}`]: key }), {}),
       },
+
       ExpressionAttributeValues: {
         ":false": this.createAttributeValue(false),
         ":true": this.createAttributeValue(true),
