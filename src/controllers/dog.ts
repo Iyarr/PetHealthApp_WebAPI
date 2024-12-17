@@ -54,7 +54,7 @@ export const dogController = {
     }
   },
 
-  async getMockData(req: Request, res: Response) {                  //モック作成
+  async getMockData(req: Request, res: Response) {                //モック作成
     const mockData = {
       id: "1",
       name: "Pochi",
@@ -62,6 +62,8 @@ export const dogController = {
       size: "small",
       hostUid: "user_id"
     };
+    console.log("Mock Data Response:", mockData);
     res.status(200).json({ message: "OK", data: mockData });
+  
   }
 };
