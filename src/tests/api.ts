@@ -11,6 +11,7 @@ import {
   UserDogsGETUsersResponseBody,
 } from "../types/userdog.js";
 import { env } from "../utils/env.js";
+import { API } from "../consts/api.js";
 
 const app = initializeApp({
   apiKey: env.FIREBASE_API_KEY,
@@ -176,7 +177,7 @@ await test("Dog API Test", async () => {
           body: JSON.stringify(testDog.updateItem),
         });
         const data = await response.json();
-        strict.deepStrictEqual(data.message, "Dog updated");
+        strict.deepStrictEqual(data.message, API.Message.Success[200]);
       })
     );
   });
@@ -217,7 +218,7 @@ await test("Dog API Test", async () => {
             headers: headers(testDog.owner.token),
           });
           const data = await response.json();
-          strict.deepStrictEqual(data.message, "Dog deleted");
+          strict.deepStrictEqual(data.message, API.Message.Success[200]);
         } catch (e) {
           strict.fail(e);
         }

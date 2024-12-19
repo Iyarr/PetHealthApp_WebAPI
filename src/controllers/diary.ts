@@ -11,7 +11,7 @@ import {
   DiaryPUTRequestBody,
   DiaryDELETERequestParams,
 } from "../types/diary.js";
-import { diaryItemDetailsTableAttributes } from "../common/dynamodb.js";
+import { API } from "../consts/api.js";
 
 export const diaryController = {
   async create(req: Request, res: Response) {
@@ -22,7 +22,7 @@ export const diaryController = {
       if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
         const itemId = await diaryItemModel.postItem(body);
         await diaryModel.postItemCommand({ ...body, itemId: itemId });
-        res.status(201).json({ message: "created" });
+        res.status(201).json({ message: API.Message.Success[201] });
         return;
       }
     });
@@ -36,7 +36,7 @@ export const diaryController = {
       if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
         const output = await diaryModel.getItemCommand({ id: Number(params.dogId) });
         res.status(200).json({
-          message: "OK",
+          message: API.Message.Success[200],
           data: output,
         });
         return;
@@ -52,7 +52,7 @@ export const diaryController = {
     const nextMonthDate = new Date(Number(params.year), Number(params.month));
 
     const userdog = await userDogModel.getDogsFromUid(uid);
-    res.status(200).json({ message: "OK" });
+    res.status(200).json({ message: API.Message.Success[200], data: userdog });
   },
 
   async update(req: Request, res: Response) {
@@ -62,7 +62,7 @@ export const diaryController = {
     userDogs.forEach(async (userdog) => {
       if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
         await diaryModel.putItemCommand(body);
-        res.status(200).json({ message: "OK" });
+        res.status(200).json({ message: API.Message.Success[200] });
         return;
       }
     });
@@ -75,7 +75,7 @@ export const diaryController = {
     userDogs.forEach(async (userdog) => {
       if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
         await diaryModel.deleteItemCommand(params);
-        res.status(200).json({ message: "OK" });
+        res.status(200).json({ message: API.Message.Success[200] });
         return;
       }
     });

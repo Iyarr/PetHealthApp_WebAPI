@@ -8,6 +8,7 @@ import {
   UserDogsTableItems,
 } from "../types/userdog.js";
 import { userDogModel } from "../models/userdog.js";
+import { API } from "../consts/api.js";
 
 export const userdogController = {
   async create(req: Request, res: Response) {
@@ -23,7 +24,7 @@ export const userdogController = {
     };
     try {
       await userDogModel.postItemCommand<UserDogsTableItems>(userdog);
-      res.status(201).json({ message: "userdog created" });
+      res.status(201).json({ message: API.Message.Success[201] });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -36,9 +37,10 @@ export const userdogController = {
     };
     try {
       const userdogs = await userDogModel.getUsersFromDogId(params.dogId);
-      res
-        .status(200)
-        .json({ message: "OK", data: { users: userdogs.map((userdog) => userdog.uid) } });
+      res.status(200).json({
+        message: API.Message.Success[200],
+        data: { users: userdogs.map((userdog) => userdog.uid) },
+      });
     } catch (e) {
       res.status(404).json({ message: "userdog not found" });
     }
@@ -54,7 +56,7 @@ export const userdogController = {
     };
     try {
       await userDogModel.update(userdog);
-      res.status(200).json({ message: "userdog updated" });
+      res.status(200).json({ message: API.Message.Success[200] });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -68,7 +70,7 @@ export const userdogController = {
     const uid = res.locals.uid as string;
     try {
       await userDogModel.deleteWithOwnerValidation(params, uid);
-      res.status(200).json({ message: "userdog deleted" });
+      res.status(200).json({ message: API.Message.Success[200] });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }

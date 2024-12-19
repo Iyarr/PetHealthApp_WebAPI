@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { userDogModel } from "../models/userdog.js";
 import { dogModel } from "../models/dog.js";
 import { UserDogsTableItems } from "../types/userdog.js";
+import { API } from "../consts/api.js";
 
 export const userController = {
   async readDogs(req: Request, res: Response) {
@@ -13,7 +14,7 @@ export const userController = {
       });
       const dogs = await dogModel.batchGetItemCommand(dogIds);
       res.status(200).json({
-        message: "OK",
+        message: API.Message.Success[200],
         data: { dogs },
       });
     } catch (e) {
@@ -26,7 +27,7 @@ export const userController = {
       const uid = res.locals.uid as string;
       const userdogs = await userDogModel.getNotification(uid);
       res.status(200).json({
-        message: "OK",
+        message: API.Message.Success[200],
         data: {
           userdogs: userdogs.map((userdog) => ({
             dogId: userdog.dogId,

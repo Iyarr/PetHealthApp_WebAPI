@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { DogPOSTRequestBody, DogPUTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
+import { API } from "../consts/api.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
@@ -11,7 +12,7 @@ export const dogController = {
     };
     try {
       const id = await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
-      res.status(201).json({ message: "Dog created", data: { id } });
+      res.status(201).json({ message: API.Message.Success[201], data: { id } });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -20,7 +21,7 @@ export const dogController = {
   async read(req: Request, res: Response) {
     try {
       const dog = await dogModel.getItemCommand({ id: Number(req.params.id) });
-      res.status(200).json({ message: "OK", data: { dog } });
+      res.status(200).json({ message: API.Message.Success[200], data: { dog } });
     } catch (e) {
       res.status(404).json({ message: "Dog not found" });
     }
@@ -35,7 +36,7 @@ export const dogController = {
       if (!updatedItem) {
         throw new Error("Dog not found");
       } else {
-        res.status(200).json({ message: "Dog updated" });
+        res.status(200).json({ message: API.Message.Success[200] });
       }
     } catch (e) {
       res.status(400).json({ message: e.message });
@@ -57,7 +58,7 @@ export const dogController = {
           })
         );
       }
-      res.status(200).json({ message: "Dog deleted" });
+      res.status(200).json({ message: API.Message.Success[200] });
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
