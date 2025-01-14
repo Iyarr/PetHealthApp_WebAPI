@@ -13,7 +13,12 @@ export const tableNames = [
 
 // Tables
 export const dogsTablePK = ["id"] as const;
-export const dogsTableAttributes = ["name", "size", "ownerUid"] as const;
+export const dogsTableNumberAttributes = ["sizeId", "genderId"] as const;
+export const dogsTableStringAttributes = ["name", "ownerUid"] as const;
+export const dogsTableAttributes = [
+  ...dogsTableNumberAttributes,
+  ...dogsTableStringAttributes,
+] as const;
 export const dogsTableItems = [...dogsTablePK, ...dogsTableAttributes] as const;
 
 export const userDogsTableStringPK = ["uid"] as const;
@@ -37,10 +42,10 @@ export const diariesTableNumberPK = ["dogId"] as const;
 export const diariesTablePK = [...diariesTableStringPK, ...diariesTableNumberPK] as const;
 
 export const diariesTableStringAttributes = ["memo", "createdUid"] as const;
-export const diariesTableNumberAttributes = ["itemId"] as const;
+export const diariesTableNumberArrayAttributes = ["itemIds"] as const;
 export const diariesTableAttributes = [
   ...diariesTableStringAttributes,
-  ...diariesTableNumberAttributes,
+  ...diariesTableNumberArrayAttributes,
 ];
 export const diariesTableItems = [...diariesTablePK, ...diariesTableAttributes] as const;
 

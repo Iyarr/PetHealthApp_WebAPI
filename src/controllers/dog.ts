@@ -1,16 +1,13 @@
 import { Request, Response } from "express";
-import { DogPOSTRequestBody, DogPUTRequestBody } from "../types/dog.js";
+import { DogPOSTRequestBody, DogPUTRequestParams, DogPUTRequestBody } from "../types/dog.js";
 import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
 
 export const dogController = {
   async create(req: Request, res: Response) {
-    const dog: DogPOSTRequestBody = {
-      ownerUid: res.locals.uid,
-      ...req.body,
-    };
+    const body = req.body as DogPOSTRequestBody;
     try {
-      const id = await dogModel.postItemCommand<DogPOSTRequestBody>(dog);
+      const id = await dogModel.postItemCommand(body);
       res.status(201).json({ message: "Dog created", data: { id } });
     } catch (e) {
       res.status(400).json({ message: e.message });
@@ -27,11 +24,11 @@ export const dogController = {
   },
 
   async update(req: Request, res: Response) {
-    const dog: DogPUTRequestBody = req.body;
-    const id = Number(req.params.id);
-    const ownerUid = res.locals.uid;
+    const body = req.body as DogPUTRequestBody;
+    const params = req.params as DogPUTRequestParams;
+    const ownerUid = res.locals.uid as string;
     try {
-      const updatedItem = await dogModel.updateItemCommand(id, dog, ownerUid);
+      const updatedItem = await dogModel.updateItemCommand(Number(params.id), body, ownerUid);
       if (!updatedItem) {
         throw new Error("Dog not found");
       } else {
