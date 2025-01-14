@@ -3,7 +3,6 @@ import {
   UpdateItemCommand,
   PutItemCommand,
   BatchGetItemCommand,
-  BatchWriteItemCommand,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
 import { env } from "../utils/env.js";
@@ -16,7 +15,22 @@ export class Model {
     this.tableName = env.TABLE_PREFIX + tableName;
   }
 
-  async getItemCommand<T extends object>(pk: T) {
+  async postItem<T extends object>(item: T) {
+    const id = this.addPKIncrement();
+    const command = new PutItemCommand({
+      TableName: this.tableName,
+      Item: this.formatItemForCommand({ ...item, id }),
+    });
+
+    try {
+      await DBClient.send(command);
+      return id;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getItemCommand<Tin extends object, Tout extends object>(pk: Tin) {
     const command = new GetItemCommand({
       TableName: this.tableName,
       Key: this.formatItemForCommand(pk),
@@ -24,13 +38,13 @@ export class Model {
 
     try {
       const result = await DBClient.send(command);
-      return this.formatItemFromCommand(result.Item);
+      return this.formatItemFromCommand<Tout>(result.Item);
     } catch (error) {
       throw new Error(error);
     }
   }
 
-  async batchGetItemCommand<T extends object>(pks: T[]) {
+  async batchGetItemCommand<Tin extends object, Tout extends object>(pks: Tin[]) {
     const slicedPks = this.sliceObjectList(pks, DynamoDBBatchWriteLimit);
     const items = await Promise.all(
       slicedPks.map(async (pks) => {
@@ -43,7 +57,9 @@ export class Model {
         });
 
         const output = await DBClient.send(command);
-        return output.Responses[this.tableName].map((item) => this.formatItemFromCommand(item));
+        return output.Responses[this.tableName].map((item) =>
+          this.formatItemFromCommand<Tout>(item)
+        );
       })
     );
 
@@ -93,12 +109,12 @@ export class Model {
   }
 
   // DynamoDBのCommandでの形式をオブジェクトに変換
-  formatItemFromCommand(item: Record<string, AttributeValue>) {
+  formatItemFromCommand<T extends object>(item: Record<string, AttributeValue>) {
     const formatedItem: object = {};
     for (const [key, value] of Object.entries(item)) {
       formatedItem[key] = this.convertAttributeValueToPrimitive(value);
     }
-    return formatedItem;
+    return formatedItem as T;
   }
 
   // AttributeValueを生成

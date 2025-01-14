@@ -4,10 +4,11 @@ import { randomUUID } from "node:crypto";
 import { userDogModel } from "../../models/userdog.js";
 import { dogModel } from "../../models/dog.js";
 import { UserDogsTableItems } from "../../types/userdog.js";
+import { DogsTablePK, DogModelItemInput } from "../../types/dog.js";
 import { dog3Sizes, dogGenders } from "../../common/dogs.js";
-import { DescribeTableCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { DBClient } from "../../utils/dynamodb.js";
-import { env } from "../../utils/env.js";
+import { massageConditionCheckFailedException } from "../../common/dynamodb.js";
 
 const numberOfUser = 40;
 const numberOfDogsPerUser = 3;
@@ -16,13 +17,7 @@ const numberOfUserDogsPerUser = 10;
 const numberOfDogs = numberOfUser * numberOfDogsPerUser;
 const numberOfUserDogs = numberOfUser * numberOfUserDogsPerUser;
 
-type TestDogTableItems = {
-  id?: number;
-  ownerUid: string;
-  name: string;
-  gender: (typeof dogGenders)[number];
-  size: (typeof dog3Sizes)[number];
-};
+type TestDogTableItems = Partial<DogsTablePK> & DogModelItemInput;
 
 type TestDog = {
   invitedUids: string[];
@@ -30,8 +25,8 @@ type TestDog = {
   item: TestDogTableItems;
   updateItem: {
     name?: string;
-    gender?: (typeof dogGenders)[number];
-    size?: (typeof dog3Sizes)[number];
+    genderId?: string;
+    sizeId?: string;
   };
 };
 
@@ -58,12 +53,12 @@ const testUsers: TestUser[] = [...Array(numberOfUser).keys()].map((i: number) =>
 const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
   const reqBody: {
     name: string;
-    gender: (typeof dogGenders)[number];
-    size: (typeof dog3Sizes)[number];
+    genderId: string;
+    sizeId: string;
   } = {
     name: i.toString(),
-    gender: dogGenders[i % 2],
-    size: dog3Sizes[i % 3],
+    genderId: (i % 2).toString(),
+    sizeId: (i % 3).toString(),
   };
   const ownerUidIndex = Math.floor(Math.random() * numberOfUser);
   const ownerUid = testUsers[ownerUidIndex].uid;
@@ -75,8 +70,8 @@ const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
       ...reqBody,
     },
     updateItem: {
-      gender: dogGenders[(i + 1) % 2],
-      size: dog3Sizes[(i + 1) % 3],
+      genderId: ((i + 1) % 2).toString(),
+      sizeId: ((i + 1) % 3).toString(),
     },
   };
 });
@@ -110,7 +105,7 @@ await test("UserDog Test", async (t) => {
   await test("Create Dogs for Test", async () => {
     await Promise.all(
       testDogs.map(async (testDog) => {
-        const id = await dogModel.postItemCommand<TestDogTableItems>(testDog.item);
+        const id = await dogModel.postItemCommand(testDog.item);
         testDog.item.id = id;
       })
     );
@@ -148,6 +143,26 @@ await test("UserDog Test", async (t) => {
     );
   });
 
+  await test("Create UserDog with Duplicate", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        try {
+          const item = {
+            dogId: testUserDog.dog.item.id,
+            uid: testUserDog.user.uid,
+            ownerUid: testUserDog.dog.item.ownerUid,
+            isAccepted: false,
+            isAnswered: false,
+          };
+          await userDogModel.postItemCommand<UserDogsTableItems>(item);
+          strict.fail("Conditional Check Failed Exception is not thrown");
+        } catch (e) {
+          strict.deepStrictEqual(e.message, massageConditionCheckFailedException);
+        }
+      })
+    );
+  });
+
   await test("Update UserDog", async () => {
     await Promise.all(
       testUserDogs.map(async (testUserDog) => {
@@ -162,6 +177,22 @@ await test("UserDog Test", async (t) => {
       })
     );
     strict.ok(true);
+  });
+
+  await test("Create UserDog again when not approved", async () => {
+    await Promise.all(
+      testUserDogs.map(async (testUserDog) => {
+        if (testUserDog.updateItem.isAccepted) return;
+        const item = {
+          dogId: testUserDog.dog.item.id,
+          uid: testUserDog.user.uid,
+          ownerUid: testUserDog.dog.item.ownerUid,
+          isAccepted: false,
+          isAnswered: false,
+        };
+        await userDogModel.postItemCommand<UserDogsTableItems>(item);
+      })
+    );
   });
 
   await test("Get Dogs from Uid", async () => {

@@ -7,20 +7,32 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { Model } from "./model.js";
 import { DBClient } from "../utils/dynamodb.js";
-import { DogPUTRequestBody } from "../types/dog.js";
-import { dogsTablePK } from "../common/dynamodb.js";
+import { DogsTableAttributes, DogsTableItems, DogModelItemInput } from "../types/dog.js";
+import {
+  dogsTablePK,
+  dogsTableNumberAttributes,
+  dogsTableStringAttributes,
+} from "../common/dynamodb.js";
 
 class DogModel extends Model {
   constructor() {
     super("Dogs");
   }
 
-  async postItemCommand<T extends object>(item: T) {
+  async postItemCommand(item: DogModelItemInput) {
+    const commandItem = Object.entries(item).reduce((acc, [key, value]) => {
+      if ((dogsTableStringAttributes as readonly string[]).includes(key)) {
+        acc[key] = value;
+      } else if ((dogsTableNumberAttributes as readonly string[]).includes(key)) {
+        acc[key] = Number(value);
+      }
+      return acc;
+    }, {} as DogsTableAttributes);
     const id = await this.addPKIncrement();
 
     const command = new PutItemCommand({
       TableName: this.tableName,
-      Item: this.formatItemForCommand({ ...item, id }),
+      Item: this.formatItemForCommand({ ...commandItem, id }),
       ConditionExpression: dogsTablePK.map((key) => `attribute_not_exists(${key})`).join(" AND "),
     });
 
@@ -32,12 +44,20 @@ class DogModel extends Model {
     return id;
   }
 
-  async updateItemCommand(id: number, item: DogPUTRequestBody, ownerUid: string) {
-    const updateItems: string[] = [];
+  async updateItemCommand(id: number, item: Partial<DogModelItemInput>, ownerUid: string) {
+    const updateItem = Object.entries(item).reduce((acc, [key, value]) => {
+      if ((dogsTableStringAttributes as readonly string[]).includes(key)) {
+        acc[key] = value;
+      } else if ((dogsTableNumberAttributes as readonly string[]).includes(key)) {
+        acc[key] = Number(value);
+      }
+      return acc;
+    }, {} as DogsTableAttributes);
+    const updateExpressions: string[] = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, AttributeValue> = {};
-    for (const [key, value] of Object.entries(item)) {
-      updateItems.push(`#${key} = :${key}`);
+    for (const [key, value] of Object.entries(updateItem)) {
+      updateExpressions.push(`#${key} = :${key}`);
       expressionAttributeNames[`#${key}`] = key;
       expressionAttributeValues[`:${key}`] = this.createAttributeValue(value);
     }
@@ -47,14 +67,14 @@ class DogModel extends Model {
       TableName: this.tableName,
       Key: this.formatItemForCommand({ id }),
       ConditionExpression: "#ownerUid = :ownerUid",
-      UpdateExpression: `set ${updateItems.join(", ")}`,
+      UpdateExpression: `set ${updateExpressions.join(", ")}`,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: "ALL_NEW",
     });
 
     const output = await DBClient.send(command);
-    return this.formatItemFromCommand(output.Attributes);
+    return this.formatItemFromCommand<DogsTableItems>(output.Attributes);
   }
 
   async batchGetMyDogs(id: number) {
@@ -69,7 +89,7 @@ class DogModel extends Model {
       },
     });
     const output = await DBClient.send(command);
-    return output.Items.map((item) => this.formatItemFromCommand(item));
+    return output.Items.map((item) => this.formatItemFromCommand<DogsTableItems>(item));
   }
 
   async deleteItemCommand(id: number, uid: string) {
@@ -87,7 +107,7 @@ class DogModel extends Model {
     });
 
     const output = await DBClient.send(command);
-    return this.formatItemFromCommand(output.Attributes);
+    return this.formatItemFromCommand<DogsTableItems>(output.Attributes);
   }
 }
 
