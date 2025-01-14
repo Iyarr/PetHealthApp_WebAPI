@@ -2,7 +2,7 @@ import {
   diariesTableNumberPK,
   diariesTableStringPK,
   diariesTablePK,
-  diariesTableNumberAttributes,
+  diariesTableNumberArrayAttributes,
   diariesTableStringAttributes,
   diariesTableAttributes,
   diaryItemsTableNumberPK,
@@ -27,6 +27,7 @@ export type DiaryGETRequestParams = {
 };
 
 export type DiaryGETMonthRequestParams = {
+  dogId: string;
   year: string;
   month: string;
 };
@@ -59,10 +60,11 @@ export type DiariesTablePK = DiariesTableNumberPK & DiariesTableStringPK;
 export type DiariesTableStringAttributes = {
   [K in (typeof diariesTableStringAttributes)[number]]: string;
 };
-export type DiariesTableNumberAttributes = {
-  [K in (typeof diariesTableNumberAttributes)[number]]: number;
+export type DiariesTableNumberArrayAttributes = {
+  [K in (typeof diariesTableNumberArrayAttributes)[number]]: number[];
 };
-export type DiariesTableAttributes = DiariesTableStringAttributes & DiariesTableNumberAttributes;
+export type DiariesTableAttributes = DiariesTableStringAttributes &
+  DiariesTableNumberArrayAttributes;
 
 export type DiariesTableItems = DiariesTablePK & DiariesTableAttributes;
 // DiaryItems
@@ -75,6 +77,7 @@ export type DiaryItemsTablePK = DiaryItemsTableNumberPK;
 export type DiaryItemsTableAttributes = {
   [K in (typeof diaryItemsTableNumberAttributes)[number]]: number;
 };
+export type DiaryItemsTableItems = DiaryItemsTablePK & DiaryItemsTableAttributes;
 
 // DiaryItemDetails
 export type DiaryItemDetailsTableNumberPK = {

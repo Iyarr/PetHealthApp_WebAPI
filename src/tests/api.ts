@@ -4,7 +4,7 @@ import { initializeApp } from "firebase/app";
 import { randomUUID } from "node:crypto";
 import { getAuth, createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
 import { dogGenders, dog3Sizes } from "../common/dogs.js";
-import { DogPUTRequestBody, DogPOSTRequestBody } from "../types/dog.js";
+import { DogsTableAttributes, DogsTablePK } from "../types/dog.js";
 import {
   UserDogPOSTRequestBody,
   UserDogsGETDogsResponseBody,
@@ -28,12 +28,12 @@ type TestUser = {
 type TestDog = {
   memberUids: string[];
   invitedUids: string[];
-  item: {
-    id?: number;
-    ownerUid?: string;
-  } & DogPOSTRequestBody;
+  item: Partial<DogsTablePK> & DogsTableAttributes;
   owner: TestUser;
-  updateItem: DogPUTRequestBody;
+  updateItem: {
+    genderId: number;
+    sizeId: number;
+  };
 };
 
 type TestUserDog = {
@@ -74,10 +74,10 @@ const testUsers: TestUser[] = await Promise.all(
 );
 
 const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
-  const reqBody: DogPOSTRequestBody = {
+  const reqBody = {
     name: i.toString(),
-    gender: dogGenders[i % dogGenders.length],
-    size: dog3Sizes[i % dog3Sizes.length],
+    genderId: i % dogGenders.length,
+    sizeId: i % dog3Sizes.length,
   };
   const ownerUidIndex = Math.floor(Math.random() * testUsers.length);
   const ownerUid = testUsers[ownerUidIndex].user.user.uid;
@@ -92,8 +92,8 @@ const testDogs: TestDog[] = [...Array(numberOfDogs).keys()].map((i: number) => {
     // UserのtokenやacceptedDogIdsにアクセスするのに必要
     owner: testUsers[ownerUidIndex],
     updateItem: {
-      gender: dogGenders[(i + 1) % dogGenders.length],
-      size: dog3Sizes[(i + 1) % dog3Sizes.length],
+      genderId: (i + 1) % dogGenders.length,
+      sizeId: (i + 1) % dog3Sizes.length,
     },
   };
 });
