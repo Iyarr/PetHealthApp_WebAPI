@@ -9,10 +9,10 @@ class DiaryModel extends Model {
     super("Diaries");
   }
 
-  async postItemCommand<T extends object>(item: T) {
+  async postItemCommand(item: DiariesTableItems) {
     const whetherComplexPKIsNotExist = diariesTablePK
       .map((key) => `(attribute_not_exists(#${key}))`)
-      .join(" OR ");
+      .join(" AND ");
     const command = new PutItemCommand({
       TableName: this.tableName,
       Item: this.formatItemForCommand(item),

@@ -14,9 +14,14 @@ import {
   diaryItemOptionsTableStringAttributes,
 } from "../common/dynamodb.js";
 // Request
-export type DiaryPOSTRequestBody = {
-  [K in (typeof diariesTableAttributes)[number]]: string;
+export type DiaryPOSTRequestStringBody = {
+  [K in (typeof diariesTableStringAttributes)[number]]: string;
 };
+export type DiaryPOSTRequestObjectArrayBody = {
+  diaries: Array<DiaryItemsTableAttributes>;
+};
+
+export type DiaryPOSTRequestBody = DiaryPOSTRequestObjectArrayBody & DiaryPOSTRequestStringBody;
 
 export type DiaryPOSTRequestParams = {
   [K in (typeof diariesTablePK)[number]]: string;

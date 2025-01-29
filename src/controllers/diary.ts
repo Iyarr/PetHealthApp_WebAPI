@@ -16,16 +16,35 @@ import {
   DiaryItemsTableAttributes,
   DiaryItemsTableItems,
 } from "../types/diary.js";
+import { dogModel } from "../models/dog.js";
 
 export const diaryController = {
   async create(req: Request, res: Response) {
     const params = req.params as DiaryPOSTRequestParams;
     const body = req.body as DiaryPOSTRequestBody;
+    const uid = res.locals.uid as string;
+
     const userDogs = await userDogModel.getDogsFromUid(res.locals.uid);
     userDogs.forEach(async (userdog) => {
-      if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === res.locals.uid) {
+      if (userdog.dogId === Number(params.dogId) || userdog.ownerUid === uid) {
+        const dieriesItemPK = await diaryModel.getPKIncrement();
+        const diaryItemTableItems: DiaryItemsTableItems[] = [];
+        const itemIds: number[] = [];
+        body.diaries.forEach(async (diary, index) => {
+          const itemId = dieriesItemPK + index + 1;
+          diaryItemTableItems.push({ id: itemId, ...diary });
+          itemIds.push(itemId);
+        });
+        const attributes = {
+          ...params,
+          dogId: Number(params.dogId),
+          createdUid: uid,
+          memo: body.memo,
+          itemIds,
+        };
         const itemId = await diaryItemModel.postItem(body);
-        await diaryModel.postItemCommand({ ...body, itemId: itemId });
+
+        await diaryModel.postItemCommand({ ...attributes });
         res.status(201).json({ message: "created" });
         return;
       }

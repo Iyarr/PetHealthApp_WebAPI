@@ -4,8 +4,17 @@ import { dogModel } from "../models/dog.js";
 import { userDogModel } from "../models/userdog.js";
 
 export const dogController = {
-  async create(req: Request, res: Response) {
-    const body = req.body as DogPOSTRequestBody;
+  async create(
+    req: Request<
+      {},
+      { message: string; data: { id: string } },
+      DogPOSTRequestBody,
+      {},
+      { uid: string }
+    >,
+    res: Response
+  ) {
+    const body = req.body;
     try {
       const id = await dogModel.postItemCommand(body);
       res.status(201).json({ message: "Dog created", data: { id } });
