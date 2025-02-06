@@ -8,5 +8,5 @@ echo "Starting unit test"
 npm run test:unit > ./log/unit.log
 echo "Unit test done"
 
-tail -f /dev/null
+#tail -f /dev/null
 exit 0
