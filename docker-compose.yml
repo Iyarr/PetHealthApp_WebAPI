@@ -1,0 +1,36 @@
+services:
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    healthcheck:
+      # ローカルからのcurlコマンドでレスポンスが返ってくるのか検証
+      test: ["CMD-SHELL","bash -c 'curl http://localhost:8000' || (echo $? | grep -q 0 && exit 0 || exit 1)"]
+      interval: 2s
+      retries: 5
+      start_period: 10s
+    command: -jar DynamoDBLocal.jar
+
+  api:
+    build:
+      context: .
+      dockerfile: test.dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      AWS_ACCESS_KEY_ID: "dummyAccessKeyId"
+      AWS_SECRET_ACCESS_KEY: "dummySecretAccessKey"
+      AWS_REGION: "us-west-2"
+      DYNAMODB_ENDPOINT: "http://dynamodb:8000"
+      DYNAMODB_PORT: "8000"
+      ON_DEVELOPMENT: True
+      PORT: "3000"
+      TABLE_PREFIX: "Test_"
+    volumes:
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./log:/app/log
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+    command: ./init.sh

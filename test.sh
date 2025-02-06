@@ -10,20 +10,19 @@ export DYNAMODB_PORT=8000
 export DYNAMODB_ENDPOINT=http://localhost:$DYNAMODB_PORT
 export ON_DEVELOPMENT=true
 
-# Run DynamoDB Local
-docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
-  -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
-
-npm run build
-find dist/ -name '*.js'
-echo "Building done"
-sleep 1
-node dist/tests/init.js
-echo "DynamoDB initialized"
-sleep 1
 if [ "$1" == "unit" ]; then
-  find dist/tests/unit -name '*.js' | xargs node --test > result.log 2>&1
+  docker compose up --build --force-recreate --abort-on-container-exit
+  docker compose down -v
 elif [ "$1" == "api" ]; then
+  docker run -p 8000:8000 -d --rm --name dynamodb amazon/dynamodb-local:latest \
+    -jar DynamoDBLocal.jar -port $DYNAMODB_PORT
+  npm run build
+  find dist/ -name '*.js'
+  echo "Building done"
+  sleep 1
+  node dist/tests/init.js
+  echo "DynamoDB initialized"
+  sleep 1
   nohup npm start > result.log 2>&1 &
   echo "Server started"
   bpid=$!
@@ -31,6 +30,7 @@ elif [ "$1" == "api" ]; then
   echo "Test started"
   node --test dist/tests/api.js
   kill $bpid
+  docker stop dynamodb
 fi
 
-docker stop dynamodb
+exit 0
